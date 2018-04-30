@@ -153,17 +153,6 @@ QString WalletManager::errorString() const
     return tr("Unknown error");
 }
 
-bool WalletManager::moveWallet(const QString &src, const QString &dst)
-{
-    return true;
-}
-
-
-QString WalletManager::walletLanguage(const QString &locale)
-{
-    return "English";
-}
-
 quint64 WalletManager::maximumAllowedAmount() const
 {
     return Monero::Wallet::maximumAllowedAmount();
