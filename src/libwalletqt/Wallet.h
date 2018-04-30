@@ -329,6 +329,10 @@ private:
     // Used for UI history view
     mutable TransactionHistoryModel * m_historyModel;
     mutable TransactionHistorySortFilterModel * m_historySortFilterModel;
+    AddressBook * m_addressBook;
+    mutable AddressBookModel * m_addressBookModel;
+    Subaddress * m_subaddress;
+    mutable SubaddressModel * m_subaddressModel;
     QString m_paymentId;
     mutable QTime   m_daemonBlockChainHeightTime;
     mutable quint64 m_daemonBlockChainHeight;
@@ -341,10 +345,6 @@ private:
     mutable QTime   m_connectionStatusTime;
     mutable bool    m_initialized;
     uint32_t m_currentSubaddressAccount;
-    AddressBook * m_addressBook;
-    mutable AddressBookModel * m_addressBookModel;
-    Subaddress * m_subaddress;
-    mutable SubaddressModel * m_subaddressModel;
     QMutex m_connectionStatusMutex;
     bool m_connectionStatusRunning;
     QString m_daemonUsername;
