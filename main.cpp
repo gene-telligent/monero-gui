@@ -72,6 +72,8 @@ bool isDesktop = false;
 
 void messageHandler(QtMsgType type, const QMessageLogContext &context, const QString &msg)
 {
+    Q_UNUSED(type);
+    Q_UNUSED(context);
     // Send all message types to logger
     Monero::Wallet::debug("qml", msg.toStdString());
 }
