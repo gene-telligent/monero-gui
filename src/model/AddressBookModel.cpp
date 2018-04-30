@@ -24,6 +24,7 @@ void AddressBookModel::endReset(){
 
 int AddressBookModel::rowCount(const QModelIndex &parent) const
 {
+    Q_UNUSED(parent)
     return m_addressBook->count();
 }
 

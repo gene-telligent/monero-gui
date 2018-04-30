@@ -52,6 +52,7 @@ void SubaddressModel::endReset(){
 
 int SubaddressModel::rowCount(const QModelIndex &parent) const
 {
+    Q_UNUSED(parent);
     return m_subaddress->count();
 }
 
