@@ -80,7 +80,9 @@ ApplicationWindow {
     property int estimatedBlockchainSize: 50 // GB
 
     // true if wallet ever synchronized
-    property bool walletInitialized : false
+    property bool walletInitialized : false;
+
+    property var currentPrice;
 
     function altKeyReleased() { ctrlPressed = false; }
 
@@ -214,6 +216,12 @@ ApplicationWindow {
 
         // Local daemon settings
         walletManager.setDaemonAddress(localDaemonAddress)
+
+        // Are we updating the price already?
+        if (persistentSettings.updateMoneroPrice) {
+            // TODO: start with default values
+            startPriceManager();
+        }
 
 
         // wallet already opened with wizard, we just need to initialize it
@@ -349,6 +357,12 @@ ApplicationWindow {
             return;
         middlePanel.unlockedBalanceText = leftPanel.unlockedBalanceText =  middlePanel.state === "Receive" ? qsTr("HIDDEN") : walletManager.displayAmount(currentWallet.unlockedBalance(currentWallet.currentSubaddressAccount));
         middlePanel.balanceText = leftPanel.balanceText = middlePanel.state === "Receive" ? qsTr("HIDDEN") : walletManager.displayAmount(currentWallet.balance(currentWallet.currentSubaddressAccount));
+    }
+
+    function updatePrice() {
+        if (!currentWallet || typeof currentPrice === "undefined")
+            return;
+        leftPanel.priceText = currentPrice.convert(currentWallet.balance(currentWallet.currentSubaddressAccount));
     }
 
     function onWalletConnectionStatusChanged(status){
@@ -536,6 +550,29 @@ ApplicationWindow {
         informationPopup.icon  = StandardIcon.Critical
         informationPopup.onCloseCallback = null
         informationPopup.open();
+    }
+
+    function startPriceManager() {
+        console.log("Starting PriceManager");
+        priceManager.start();
+        currentPrice = priceManager.price;
+    }
+
+    function stopPriceManager() {
+        console.log("Stopping PriceManager");
+        priceManager.stop();
+    }
+
+    function onPriceUpdated() {
+        if (currentPrice === null || typeof currentPrice === "undefined") {
+            console.log("Price update signaled but current price is null")
+        }
+
+        console.log("Price has been updated!");
+        console.log("Current price is " + currentPrice.price.toString());
+        console.log("Current currency is " + currentPrice.currency);
+        console.log("will try to convert to  " + currentPrice.convert(currentWallet.balance(currentWallet.currentSubaddressAccount)));
+        updatePrice();
     }
 
     function onWalletNewBlock(blockHeight, targetHeight) {
@@ -952,6 +989,10 @@ ApplicationWindow {
             daemonManager.daemonStopped.connect(onDaemonStopped);
         }
 
+        if (typeof priceManager != "undefined") {
+            priceManager.priceRefreshed.connect(onPriceUpdated);
+        }
+
 
 
         // Connect app exit to qml window exit handling
@@ -1022,6 +1063,7 @@ ApplicationWindow {
         property bool segregatePreForkOutputs: true
         property bool keyReuseMitigation2: true
         property int segregationHeight: 0
+        property bool updateMoneroPrice: false
     }
 
     // Information dialog
@@ -1764,6 +1806,7 @@ ApplicationWindow {
 
     function closeAccepted(){
         console.log("close accepted");
+        priceManager.stop();
         // Close wallet non async on exit
         daemonManager.exit();
         walletManager.closeWallet();

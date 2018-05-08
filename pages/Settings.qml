@@ -508,6 +508,40 @@ Rectangle {
             }
         }
 
+        // Price settings
+        RowLayout {
+            visible: !isMobile
+            Label {
+                id: priceSettingsLabel
+                fontSize: 22 * scaleRatio
+                text: qsTr("Price settings") + translationManager.emptyString
+            }
+
+            Rectangle {
+                anchors.top: priceSettingsLabel.bottom
+                anchors.topMargin: 4
+                anchors.left: parent.left
+                anchors.right: parent.right
+                Layout.fillWidth: true
+                height: 2
+                color: Style.dividerColor
+                opacity: Style.dividerOpacity
+            }
+        }
+
+        RowLayout {
+            CheckBox {
+                visible: !isMobile
+                id: priceSettingsCheckBox
+                checked: persistentSettings.updateMoneroPrice
+                onClicked: {
+                    persistentSettings.updateMoneroPrice = checked;
+                    checked ? appWindow.startPriceManager() : appWindow.stopPriceManager();
+                }
+                text: qsTr("Update Monero prices") + translationManager.emptyString
+            }
+        }
+
         // Log level
 
         RowLayout {

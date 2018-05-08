@@ -53,6 +53,8 @@
 #include "model/AddressBookModel.h"
 #include "Subaddress.h"
 #include "model/SubaddressModel.h"
+#include "prices/PriceManager.h"
+#include "prices/Price.h"
 #include "wallet/api/wallet2_api.h"
 #include "MainApp.h"
 
@@ -189,6 +191,12 @@ int main(int argc, char *argv[])
     qmlRegisterUncreatableType<Subaddress>("moneroComponents.Subaddress", 1, 0, "Subaddress",
                                                         "Subaddress can't be instantiated directly");
 
+    qmlRegisterUncreatableType<PriceManager>("moneroComponents.PriceManager", 1, 0, "PriceManager",
+                                                        "PriceManager can't be instantiated directly");
+
+    qmlRegisterUncreatableType<Price>("moneroComponents.Price", 1, 0, "PriceManager",
+                                                        "PriceManager can't be instantiated directly");
+
     qRegisterMetaType<PendingTransaction::Priority>();
     qRegisterMetaType<TransactionInfo::Direction>();
     qRegisterMetaType<TransactionHistoryModel::TransactionInfoRole>();
@@ -216,6 +224,8 @@ int main(int argc, char *argv[])
     engine.rootContext()->setContextProperty("mainApp", &app);
 
     engine.rootContext()->setContextProperty("qtRuntimeVersion", qVersion());
+
+    engine.rootContext()->setContextProperty("priceManager", PriceManager::instance(engine.networkAccessManager()));
 
 // Exclude daemon manager from IOS
 #ifndef Q_OS_IOS

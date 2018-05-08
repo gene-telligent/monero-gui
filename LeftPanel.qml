@@ -39,6 +39,9 @@ Rectangle {
     property alias unlockedBalanceText: unlockedBalanceText.text
     property alias unlockedBalanceVisible: unlockedBalanceText.visible
     property alias unlockedBalanceLabelVisible: unlockedBalanceLabel.visible
+    property alias priceVisible: priceText.visible
+    property alias priceLabelVisible: priceLabel.visible
+    property alias priceText: priceText.text
     property alias balanceLabelText: balanceLabel.text
     property alias balanceText: balanceText.text
     property alias networkStatus : networkStatus
@@ -109,7 +112,7 @@ Rectangle {
                 anchors.topMargin: 20
                 anchors.leftMargin: 20
                 anchors.verticalCenter: parent.verticalCenter
-                height: 490 * scaleRatio
+                height: (490 + (persistentSettings.updateMoneroPrice ? 100 : 0)) * scaleRatio
                 width: 259 * scaleRatio
 
                 Image {
@@ -151,7 +154,7 @@ Rectangle {
                 anchors.topMargin: 20
                 anchors.leftMargin: 20
                 anchors.verticalCenter: parent.verticalCenter
-                height: 490 * scaleRatio
+                height: (490 + (persistentSettings.updateMoneroPrice ? 100 : 0)) * scaleRatio
                 width: 50 * scaleRatio
 
                 Text {
@@ -176,12 +179,33 @@ Rectangle {
                 }
 
                 Text {
+                    visible: !isMobile && persistentSettings.updateMoneroPrice
+                    id: priceText
+                    anchors.left: parent.left
+                    anchors.leftMargin: 20
+                    anchors.top: parent.top
+                    anchors.topMargin: 126
+                    font.family: "Arial"
+                    color: "#FFFFFF"
+                    text: "N/A"
+                    // dynamically adjust text size
+                    font.pixelSize: {
+                        var digits = text.split('.')[0].length
+                        var defaultSize = 22;
+                        if(digits > 2) {
+                            return defaultSize - 1.1*digits
+                        }
+                        return defaultSize;
+                    }
+                }
+
+                Text {
                     id: unlockedBalanceText
                     visible: true
                     anchors.left: parent.left
                     anchors.leftMargin: 20
                     anchors.top: parent.top
-                    anchors.topMargin: 126
+                    anchors.topMargin: 126 + (persistentSettings.updateMoneroPrice ? 50 : 0)
                     font.family: "Arial"
                     color: "#FFFFFF"
                     text: "N/A"
@@ -203,7 +227,7 @@ Rectangle {
                     anchors.left: parent.left
                     anchors.leftMargin: 20
                     anchors.top: parent.top
-                    anchors.topMargin: 110
+                    anchors.topMargin: 110  + (persistentSettings.updateMoneroPrice ? 50 : 0)
                 }
 
                 Label {
@@ -215,6 +239,17 @@ Rectangle {
                     anchors.leftMargin: 20
                     anchors.top: parent.top
                     anchors.topMargin: 60
+                }
+
+                Label {
+                    visible: !isMobile && persistentSettings.updateMoneroPrice
+                    id: priceLabel
+                    text: qsTr("$ USD") + translationManager.emptyString
+                    fontSize: 14
+                    anchors.left: parent.left
+                    anchors.leftMargin: 20
+                    anchors.top: parent.top
+                    anchors.topMargin: 110
                 }
                 Item { //separator
                     anchors.left: parent.left

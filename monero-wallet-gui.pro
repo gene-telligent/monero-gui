@@ -45,7 +45,9 @@ HEADERS += \
     src/libwalletqt/Subaddress.h \
     src/zxcvbn-c/zxcvbn.h \
     src/libwalletqt/UnsignedTransaction.h \
-    MainApp.h
+    MainApp.h \
+    src/prices/PriceManager.h \
+    src/prices/Price.h
 
 SOURCES += main.cpp \
     filter.cpp \
@@ -70,7 +72,9 @@ SOURCES += main.cpp \
     src/libwalletqt/Subaddress.cpp \
     src/zxcvbn-c/zxcvbn.c \
     src/libwalletqt/UnsignedTransaction.cpp \
-    MainApp.cpp
+    MainApp.cpp \
+    src/prices/PriceManager.cpp \
+    src/prices/Price.cpp
 
 CONFIG(DISABLE_PASS_STRENGTH_METER) {
     HEADERS -= src/zxcvbn-c/zxcvbn.h
