@@ -45,8 +45,13 @@ HEADERS += \
     src/libwalletqt/Subaddress.h \
     src/zxcvbn-c/zxcvbn.h \
     src/libwalletqt/UnsignedTransaction.h \
+    src/prices/Price.h \
+    src/prices/currency.h \
+    src/prices/PriceManager.h \
+    src/prices/PriceSource.h \
     Logger.h \
-    MainApp.h
+    MainApp.h \
+    src/prices/qtjsonpath.h
 
 SOURCES += main.cpp \
     filter.cpp \
@@ -71,6 +76,10 @@ SOURCES += main.cpp \
     src/libwalletqt/Subaddress.cpp \
     src/zxcvbn-c/zxcvbn.c \
     src/libwalletqt/UnsignedTransaction.cpp \
+    src/prices/Price.cpp \
+    src/prices/currency.cpp \
+    src/prices/PriceManager.cpp \
+    src/prices/PriceSource.cpp \
     Logger.cpp \
     MainApp.cpp
 
