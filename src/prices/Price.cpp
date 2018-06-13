@@ -17,7 +17,7 @@ Price::Price(QObject *parent) : QObject(parent),
     m_lastUpdated = QDateTime();
 }
 
-void Price::update(qreal price, Currency *currency)
+void Price::update(qreal price, Currency * currency)
 {
     m_price = price;
     m_currency = currency;
@@ -60,4 +60,9 @@ QString Price::convert(quint64 amount) const
     qreal total = amount * m_price / MONERO_STANDARD_UNIT;
     //return QString::number(total, 'f', 2);
     return m_currency->render(total);
+}
+
+Currency * Price::currency() const
+{
+    return m_currency;
 }

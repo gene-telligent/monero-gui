@@ -14,9 +14,11 @@ class Price : public QObject
     Q_PROPERTY(qreal price READ price NOTIFY updated)
     Q_PROPERTY(QString currencyCode READ currencyCode NOTIFY updated)
     Q_PROPERTY(QDateTime lastUpdated READ lastUpdated NOTIFY updated)
+    Q_PROPERTY(Currency * currency READ currency NOTIFY updated)
     Q_PROPERTY(bool stale READ stale NOTIFY updated)
 public:
     Q_INVOKABLE qreal price() const;
+    Q_INVOKABLE Currency * currency() const;
     Q_INVOKABLE QString currencyCode() const;
     Q_INVOKABLE QDateTime lastUpdated() const;
     Q_INVOKABLE bool stale() const;
@@ -28,7 +30,7 @@ signals:
 
 private:
     explicit Price(QObject *parent = nullptr);
-    void update(qreal price, Currency  * currency);
+    void update(qreal price, Currency * currency);
 
 private:
     friend class PriceManager;

@@ -1,5 +1,6 @@
 #include "PriceManager.h"
 #include "Price.h"
+#include "currencies.h"
 
 #include <QTimer>
 #include <QUrl>
@@ -201,7 +202,7 @@ void PriceManager::updatePrice(QNetworkReply* reply) const
     qreal price = static_cast<qreal>(priceVal.toDouble());
 
     qDebug() << "Static cast price";
-    m_price->update(price, "USD");
+    m_price->update(price, USD);
     qDebug() << "Got price " << price << " for USD";
     emit priceRefreshed();
 }
@@ -222,7 +223,7 @@ Price * PriceManager::price() const
     return m_price;
 }
 
-QString  PriceManager::currency() const
+Currency * PriceManager::currency() const
 {
     return m_price->currency();
 }

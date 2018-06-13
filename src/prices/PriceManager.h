@@ -9,6 +9,7 @@
 
 class Price;
 class PriceSource;
+class Currency;
 
 class PriceManager : public QObject
 {
@@ -16,7 +17,7 @@ class PriceManager : public QObject
     Q_PROPERTY(bool running READ running)
     Q_PROPERTY(bool refreshing READ refreshing)
     Q_PROPERTY(bool priceAvailable READ priceAvailable)
-    Q_PROPERTY(QString currency READ currency)
+    Q_PROPERTY(Currency * currency READ currency)
     Q_PROPERTY(Price * price READ price)
 
 public:
@@ -33,7 +34,7 @@ public:
     // Are we refreshing the price?
     Q_INVOKABLE bool refreshing() const;
     // Get the current currency
-    Q_INVOKABLE QString currency() const;
+    Q_INVOKABLE Currency * currency() const;
     // Get the current price
     Q_INVOKABLE Price *price() const;
 

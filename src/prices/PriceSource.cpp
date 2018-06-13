@@ -38,11 +38,6 @@ QUrl PriceSource::url() const
     return m_url;
 }
 
-QUrl PriceSource::generatedUrl() const
-{
-
-}
-
 void PriceSource::updatePriceFromReply(Price *price, QJsonDocument &reply)
 {
     QtJsonPath walker(reply);

@@ -1,7 +1,10 @@
 #include "currency.h"
 
+#include "QLocale"
+
+/*
 namespace DisplayCurrencies {
-    static const Currency USD = Currency(
+    const Currency USD = Currency(
                 QString("USD"),
                 QChar('$'),
                 2);
@@ -9,11 +12,11 @@ namespace DisplayCurrencies {
                 QString("GBP"),
                 QChar('£'),
                 2);
-    static const Currency BTC = Currency(
+    const Currency BTC = Currency(
                 QString("BTC"),
                 QChar(0x20BF),
                 9);
-}
+}*/
 
 Currency::Currency(const QString code, const QChar symbol, const int precision, QObject *parent) :
     QObject(parent),
@@ -40,7 +43,7 @@ int Currency::precision() const
 
 QString Currency::render(qreal amount) const
 {
-    return QLocale::toCurrencyString(amount, m_symbol, m_precision);
+    return QLocale().toCurrencyString(amount, m_symbol, m_precision);
 }
 
 

@@ -55,6 +55,7 @@ HEADERS += \
     src/prices/PriceManager.h \
     src/prices/PriceSource.h \
     src/prices/qtjsonpath.h \
+    src/prices/currencies.h \
     Logger.h \
     MainApp.h
 
@@ -82,9 +83,10 @@ SOURCES += main.cpp \
     src/zxcvbn-c/zxcvbn.c \
     src/libwalletqt/UnsignedTransaction.cpp \
     src/prices/currency.cpp \
+    src/prices/currencies.cpp \
     src/prices/Price.cpp \
     src/prices/PriceManager.cpp \
-    src/prices/PriceSource.h \
+    src/prices/PriceSource.cpp \
     Logger.cpp \
     MainApp.cpp
 
