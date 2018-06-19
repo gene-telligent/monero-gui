@@ -6,9 +6,11 @@
 #include <QNetworkAccessManager>
 #include <QNetworkReply>
 #include <QString>
+#include <QSet>
+
+#include "PriceSource.h"
 
 class Price;
-class PriceSource;
 class Currency;
 
 class PriceManager : public QObject
@@ -19,6 +21,8 @@ class PriceManager : public QObject
     Q_PROPERTY(bool priceAvailable READ priceAvailable)
     Q_PROPERTY(Currency * currency READ currency)
     Q_PROPERTY(Price * price READ price)
+    Q_PROPERTY(QSet<PriceSource*> priceSourcesAvailable READ priceSourcesAvailable)
+    Q_PROPERTY(PriceSource * currentPriceSource READ currentPriceSource)
 
 public:
     static PriceManager * instance(QNetworkAccessManager *manager);
@@ -37,6 +41,10 @@ public:
     Q_INVOKABLE Currency * currency() const;
     // Get the current price
     Q_INVOKABLE Price *price() const;
+    // Get price sources which are available
+    Q_INVOKABLE QSet<PriceSource*> priceSourcesAvailable() const;
+    // Get current price source
+    Q_INVOKABLE PriceSource * currentPriceSource() const;
 
     Q_INVOKABLE void handleError(const QString &msg) const;
 
@@ -72,6 +80,7 @@ private:
     QTimer * m_timer;
     Price * m_price;
     PriceSource * m_currentPriceSource;
+    const QSet<PriceSource *> m_price_sources = {PriceSources::CoinMarketCap};
 
 };
 

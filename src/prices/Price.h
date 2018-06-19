@@ -30,7 +30,7 @@ signals:
 
 private:
     explicit Price(QObject *parent = nullptr);
-    void update(qreal price, Currency * currency);
+    void update(qreal price, Currency *currency);
 
 private:
     friend class PriceManager;

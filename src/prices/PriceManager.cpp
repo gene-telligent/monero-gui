@@ -1,6 +1,7 @@
 #include "PriceManager.h"
 #include "Price.h"
-#include "currencies.h"
+#include "currency.h"
+#include "prices/logging.h"
 
 #include <QTimer>
 #include <QUrl>
@@ -23,7 +24,8 @@ PriceManager * PriceManager::m_instance = nullptr;
 PriceManager *PriceManager::instance(QNetworkAccessManager *networkAccessManager)
 {
     if (!m_instance) {
-        qDebug() << "Creating new static PriceManger instance";
+        qDebug() << "Creating new static PriceManger instance (regular qdebug)";
+        qCDebug(logPriceManager) << "Creating new static PriceManger instance";
         m_instance = new PriceManager(networkAccessManager);
     }
 
@@ -36,7 +38,8 @@ PriceManager::PriceManager(QNetworkAccessManager *manager, QObject *parent) :
     m_price(nullptr),
     m_timer(nullptr)
 {
-    qDebug() << "Instantiating PriceManager";
+    qDebug() << "instantiating pricemanager debug";
+    qCDebug(logPriceManager) << "Instantiating PriceManager";
     m_running = false;
     m_refreshing = false;
     m_price = new Price(this);
@@ -53,7 +56,7 @@ PriceManager::PriceManager(QObject *parent) :
 
 bool PriceManager::start()
 {
-    qDebug() << "Starting PriceManager";
+    qCDebug(logPriceManager) << "Starting PriceManager";
     emit starting();
     m_running = true;
     runPriceRefresh();
@@ -63,7 +66,7 @@ bool PriceManager::start()
 
 bool PriceManager::stop()
 {
-    qDebug() << "Stopping PriceManager";
+    qCDebug(logPriceManager) << "Stopping PriceManager";
     emit stopping();
     m_timer->stop();
     m_running = false;
@@ -73,16 +76,16 @@ bool PriceManager::stop()
 
 void PriceManager::runPriceRefresh() const
 {
-    qDebug() << "Running PriceRefresh";
+    qCDebug(logPriceManager) << "Running PriceRefresh";
     if (refreshing()) {
-        qDebug() << "Currently in process of refreshing; NOOP";
+        qCDebug(logPriceManager) << "Currently in process of refreshing; NOOP";
         return;
     }
 
     emit priceRefreshStarted();
     m_refreshing = true;
 
-    qDebug() << "Constructing request";
+    qCDebug(logPriceManager) << "Constructing request";
 
     QNetworkRequest request;
     request.setUrl(URL);
@@ -202,7 +205,7 @@ void PriceManager::updatePrice(QNetworkReply* reply) const
     qreal price = static_cast<qreal>(priceVal.toDouble());
 
     qDebug() << "Static cast price";
-    m_price->update(price, USD);
+    m_price->update(price, Currencies::USD);
     qDebug() << "Got price " << price << " for USD";
     emit priceRefreshed();
 }
@@ -221,6 +224,16 @@ void PriceManager::handleNetworkError(const QNetworkReply* reply) const
 Price * PriceManager::price() const
 {
     return m_price;
+}
+
+QSet<PriceSource *> PriceManager::priceSourcesAvailable() const
+{
+    return m_price_sources;
+}
+
+PriceSource *PriceManager::currentPriceSource() const
+{
+    return m_currentPriceSource;
 }
 
 Currency * PriceManager::currency() const

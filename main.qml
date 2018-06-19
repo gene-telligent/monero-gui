@@ -217,6 +217,14 @@ ApplicationWindow {
         // Local daemon settings
         walletManager.setDaemonAddress(localDaemonAddress)
 
+        console.log("Checking if we should update monero price");
+        // Are we updating the price already?
+        //if (persistentSettings.updateMoneroPrice) {
+        if (true) {
+            console.log("Starting price manager");
+            // TODO: start with default values
+            startPriceManager();
+        }
 
         // wallet already opened with wizard, we just need to initialize it
         if (typeof wizard.m_wallet !== 'undefined') {
@@ -931,6 +939,17 @@ ApplicationWindow {
         console.log(appWindow.width)
     }
 
+    function startPriceManager() {
+        console.log("Starting PriceManager");
+        priceManager.start();
+        //currentPrice = priceManager.price;
+    }
+
+    function stopPriceManager() {
+        console.log("Stopping PriceManager");
+        priceManager.stop();
+    }
+
 
     objectName: "appWindow"
     visible: true
@@ -1012,7 +1031,7 @@ ApplicationWindow {
         property bool   is_recovering : false
         property bool   customDecorations : true
         property string daemonFlags
-        property int logLevel: 0
+        property int logLevel: 5
         property string logCategories: ""
         property string daemonUsername: ""
         property string daemonPassword: ""
@@ -1024,6 +1043,7 @@ ApplicationWindow {
         property bool segregatePreForkOutputs: true
         property bool keyReuseMitigation2: true
         property int segregationHeight: 0
+        property bool updateMoneroPrice: true
     }
 
     // Information dialog

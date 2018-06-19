@@ -57,7 +57,8 @@ HEADERS += \
     src/prices/qtjsonpath.h \
     src/prices/currencies.h \
     Logger.h \
-    MainApp.h
+    MainApp.h \
+    src/prices/logging.h
 
 SOURCES += main.cpp \
     filter.cpp \
@@ -83,12 +84,12 @@ SOURCES += main.cpp \
     src/zxcvbn-c/zxcvbn.c \
     src/libwalletqt/UnsignedTransaction.cpp \
     src/prices/currency.cpp \
-    src/prices/currencies.cpp \
     src/prices/Price.cpp \
     src/prices/PriceManager.cpp \
     src/prices/PriceSource.cpp \
     Logger.cpp \
-    MainApp.cpp
+    MainApp.cpp \
+    src/prices/logging.cpp
 
 CONFIG(DISABLE_PASS_STRENGTH_METER) {
     HEADERS -= src/zxcvbn-c/zxcvbn.h

@@ -23,4 +23,9 @@ private:
     const int m_precision;
 };
 
+namespace Currencies {
+    extern Currency * const USD;
+    extern Currency * const GBP;
+    extern Currency * const BTC;
+}
 #endif // CURRENCY_H

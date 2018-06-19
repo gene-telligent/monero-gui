@@ -2,22 +2,6 @@
 
 #include "QLocale"
 
-/*
-namespace DisplayCurrencies {
-    const Currency USD = Currency(
-                QString("USD"),
-                QChar('$'),
-                2);
-    static const Currency GBP = Currency(
-                QString("GBP"),
-                QChar('£'),
-                2);
-    const Currency BTC = Currency(
-                QString("BTC"),
-                QChar(0x20BF),
-                9);
-}*/
-
 Currency::Currency(const QString code, const QChar symbol, const int precision, QObject *parent) :
     QObject(parent),
     m_code(code),
@@ -45,6 +29,23 @@ QString Currency::render(qreal amount) const
 {
     return QLocale().toCurrencyString(amount, m_symbol, m_precision);
 }
+
+
+namespace Currencies {
+    Currency * const USD = new Currency(
+                QString("USD"),
+                QChar('$'),
+                2);
+    Currency * const GBP = new Currency(
+                QString("GBP"),
+                QChar(0x00A3),
+                2);
+    Currency * const BTC = new Currency(
+                QString("BTC"),
+                QChar(0x20BF),
+                9);
+}
+
 
 
 

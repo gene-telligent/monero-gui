@@ -1,26 +1,18 @@
 #include "PriceSource.h"
 
 #include "currency.h"
+#include "Price.h"
 #include "qtjsonpath.h"
+#include <QVariant>
+#include <QDebug>
+#include <QMetaType>
+#include <QUrl>
+#include <QUrlQuery>
 
-
-PriceSource::PriceSource(const QString label, const QUrl url, const QSet<Currency *> currencies, const QString path, QObject *parent) :
-    QObject(parent),
-    m_label(label),
-    m_url(url),
-    m_currencies(currencies),
-    m_json_path(path)
+PriceSource::PriceSource(QObject *parent) :
+    QObject(parent)
 {
 
-}
-
-Currency *PriceSource::currency(const QString code) const
-{
-    for (QSet<Currency *>::const_iterator iter = m_currencies.constBegin(); iter != m_currencies.constEnd(); iter++) {
-        if ((*iter)->code() == code)
-            return (*iter);
-    }
-    return nullptr;
 }
 
 QSet<Currency *> PriceSource::currencies() const
@@ -28,18 +20,54 @@ QSet<Currency *> PriceSource::currencies() const
     return m_currencies;
 }
 
+QStringList PriceSource::currencyCodes() const
+{
+    for (const Currency * i : m_currencies) {
+
+    }
+}
+
 QString PriceSource::label() const
 {
     return m_label;
 }
 
-QUrl PriceSource::url() const
+QUrl PriceSource::baseUrl() const
 {
-    return m_url;
+    return m_base_url;
 }
 
-void PriceSource::updatePriceFromReply(Price *price, QJsonDocument &reply)
+QUrl PriceSource::renderUrl(Currency * currency)
+{
+    if (currency == Currencies::USD)
+        return m_base_url;
+
+    QUrl renderedUrl(m_base_url);
+    QUrlQuery query = QUrlQuery();
+    query.addQueryItem(QStringLiteral("convert"), currency->code());
+    renderedUrl.setQuery(query);
+    return renderedUrl;
+}
+
+void PriceSource::updatePriceFromReply(Price *price, Currency * currency, QJsonDocument &reply)
 {
     QtJsonPath walker(reply);
+    QString modpath(m_json_path);
+    modpath.replace(QLatin1Literal("{CURRENCY}"), currency->code());
+    QVariant res = walker.getValue(modpath);
+    if (!res.isValid() || res.isNull() || res.userType() != QMetaType::QJsonValue) {
+        qDebug() << "Invalid parsing of response from JSON reply; ignoring price update";
+        return;
+    }
+    QJsonValue val = res.toJsonValue();
+    if (!val.isDouble()) {
+        qDebug() << "Value at JsonPath was not numeric; ignoring price update";
+        return;
+    }
 
+    price->update(val.toDouble(), currency);
+}
+
+namespace PriceSources {
+    PriceSource * const CoinMarketCap = new PriceSource();
 }
