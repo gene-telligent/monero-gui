@@ -56,6 +56,11 @@ QString Price::convert(quint64 amount) const
         return QString();
     }
 
+    if (!m_currency) {
+        qDebug() << "No currency selected, returning null string";
+        return QString();
+    }
+
     // TODO: this almost certainly is an unsafe cast at high numerics
     qreal total = amount * m_price / MONERO_STANDARD_UNIT;
     //return QString::number(total, 'f', 2);

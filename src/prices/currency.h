@@ -2,6 +2,7 @@
 #define CURRENCY_H
 
 #include <QObject>
+#include <QSet>
 
 class Currency : public QObject
 {
@@ -28,4 +29,6 @@ namespace Currencies {
     extern Currency * const GBP;
     extern Currency * const BTC;
 }
+
+typedef QSet<Currency *> CurrencySet;
 #endif // CURRENCY_H

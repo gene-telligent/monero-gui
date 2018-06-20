@@ -3,28 +3,18 @@
 #include "currency.h"
 #include "Price.h"
 #include "qtjsonpath.h"
+#include "logging.h"
 #include <QVariant>
 #include <QDebug>
 #include <QMetaType>
 #include <QUrl>
 #include <QUrlQuery>
+#include <QStringListModel>
 
 PriceSource::PriceSource(QObject *parent) :
     QObject(parent)
 {
 
-}
-
-QSet<Currency *> PriceSource::currencies() const
-{
-    return m_currencies;
-}
-
-QStringList PriceSource::currencyCodes() const
-{
-    for (const Currency * i : m_currencies) {
-
-    }
 }
 
 QString PriceSource::label() const
@@ -35,6 +25,11 @@ QString PriceSource::label() const
 QUrl PriceSource::baseUrl() const
 {
     return m_base_url;
+}
+
+CurrencySet PriceSource::currenciesAvailable() const
+{
+    return m_currencies;
 }
 
 QUrl PriceSource::renderUrl(Currency * currency)
@@ -49,23 +44,26 @@ QUrl PriceSource::renderUrl(Currency * currency)
     return renderedUrl;
 }
 
-void PriceSource::updatePriceFromReply(Price *price, Currency * currency, QJsonDocument &reply)
+bool PriceSource::updatePriceFromReply(Price *price, Currency * currency, QJsonDocument &reply)
 {
     QtJsonPath walker(reply);
     QString modpath(m_json_path);
     modpath.replace(QLatin1Literal("{CURRENCY}"), currency->code());
+    qDebug() << "Using path of " << modpath;
     QVariant res = walker.getValue(modpath);
-    if (!res.isValid() || res.isNull() || res.userType() != QMetaType::QJsonValue) {
+    qDebug() << "Got walked value " << res << " with metatype " << res.userType();
+    if (!res.isValid() || res.isNull() || res.userType() != QMetaType::Double) {
         qDebug() << "Invalid parsing of response from JSON reply; ignoring price update";
-        return;
+        return false;
     }
     QJsonValue val = res.toJsonValue();
     if (!val.isDouble()) {
         qDebug() << "Value at JsonPath was not numeric; ignoring price update";
-        return;
+        return false;
     }
 
     price->update(val.toDouble(), currency);
+    return true;
 }
 
 namespace PriceSources {

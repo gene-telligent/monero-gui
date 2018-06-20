@@ -9,6 +9,7 @@
 #include <QUrl>
 #include <QString>
 #include <QNetworkReply>
+#include <QStringListModel>
 
 class Price;
 
@@ -21,24 +22,21 @@ class PriceSource : public QObject
     Q_PROPERTY(QString label READ label)
     // URL used to contact the API for prices
     Q_PROPERTY(QUrl baseUrl READ baseUrl)
-    // Supported currencies
-    Q_PROPERTY(QStringList currencyCodes READ currencyCodes)
 public:
     explicit PriceSource(QObject *parent = nullptr);
     QString label() const;
     QUrl baseUrl() const;
-    QSet<Currency*> currencies() const;
-    QStringList currencyCodes() const;
-    Q_INVOKABLE Currency * currencyFor(QString code) const;
-
+    // Get list of available currencies
+    Q_INVOKABLE CurrencySet currenciesAvailable() const;
 private:
-    void updatePriceFromReply(Price * price, Currency * currency, QJsonDocument & reply);
+    bool updatePriceFromReply(Price * price, Currency * currency, QJsonDocument & reply);
     QUrl renderUrl(Currency * currency);
 
 private:
+    friend class PriceManager;
     const QString m_label = QString("CoinMarketCap");
     const QUrl m_base_url = QUrl("https://api.coinmarketcap.com/v2/ticker/328/");
-    const QSet<Currency*> m_currencies = {Currencies::USD, Currencies::GBP, Currencies::BTC};
+    const CurrencySet m_currencies = {Currencies::USD, Currencies::GBP, Currencies::BTC};
     const QString m_json_path = "data/quotes/{CURRENCY}/price";
 };
 

@@ -41,11 +41,14 @@ Rectangle {
     property alias unlockedBalanceLabelVisible: unlockedBalanceLabel.visible
     property alias balanceLabelText: balanceLabel.text
     property alias balanceText: balanceText.text
+    property alias balanceTextFiat: balanceTextFiat.text
+    property alias unlockedBalanceTextFiat: unlockedBalanceTextFiat.text
     property alias networkStatus : networkStatus
     property alias progressBar : progressBar
     property alias daemonProgressBar : daemonProgressBar
     property alias minutesToUnlockTxt: unlockedBalanceLabel.text
     property int titleBarHeight: 50
+    property bool fiatVisible: false
 
     signal dashboardClicked()
     signal historyClicked()
@@ -101,6 +104,15 @@ Rectangle {
         anchors.top: parent.top
         anchors.topMargin: (persistentSettings.customDecorations)? 50 : 0
 
+        MouseArea {
+            id: balanceArea
+            anchors.fill: parent
+            hoverEnabled: true
+            cursorShape: Qt.PointingHandCursor
+            //onEntered: fiatVisible = true
+            //onExited: fiatVisible = false
+        }
+
         RowLayout {
             visible: true
             Item {
@@ -155,7 +167,7 @@ Rectangle {
                 width: 50 * scaleRatio
 
                 Text {
-                    visible: !isMobile
+                    visible: !isMobile && !balanceArea.containsMouse
                     id: balanceText
                     anchors.left: parent.left
                     anchors.leftMargin: 20
@@ -176,8 +188,51 @@ Rectangle {
                 }
 
                 Text {
+                    visible: !isMobile && balanceArea.containsMouse
+                    id: balanceTextFiat
+                    anchors.left: parent.left
+                    anchors.leftMargin: 20
+                    anchors.top: parent.top
+                    anchors.topMargin: 76
+                    font.family: "Arial"
+                    color: "#FFFFFF"
+                    text: "N/A"
+                    // dynamically adjust text size
+                    font.pixelSize: {
+                        var digits = text.split('.')[0].length
+                        var defaultSize = 22;
+                        if(digits > 2) {
+                            return defaultSize - 1.1*digits
+                        }
+                        return defaultSize;
+                    }
+                }
+
+                Text {
                     id: unlockedBalanceText
-                    visible: true
+                    visible: !balanceArea.containsMouse
+                    anchors.left: parent.left
+                    anchors.leftMargin: 20
+                    anchors.top: parent.top
+                    anchors.topMargin: 126
+                    font.family: "Arial"
+                    color: "#FFFFFF"
+                    text: "N/A"
+                    // dynamically adjust text size
+                    font.pixelSize: {
+                        var digits = text.split('.')[0].length
+                        var defaultSize = 20;
+                        if(digits > 3) {
+                            return defaultSize - 0.6*digits
+                        }
+                        return defaultSize;
+                    }
+                }
+
+
+                Text {
+                    id: unlockedBalanceTextFiat
+                    visible: !unlockedBalanceText.visible
                     anchors.left: parent.left
                     anchors.leftMargin: 20
                     anchors.top: parent.top
@@ -221,6 +276,9 @@ Rectangle {
                     anchors.right: parent.right
                     height: 1
                 }
+
+
+
               /* Disable twitter/news panel
                 Image {
                     anchors.left: parent.left

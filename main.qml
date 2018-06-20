@@ -358,7 +358,11 @@ ApplicationWindow {
         if (!currentWallet)
             return;
         middlePanel.unlockedBalanceText = leftPanel.unlockedBalanceText =  middlePanel.state === "Receive" ? qsTr("HIDDEN") : walletManager.displayAmount(currentWallet.unlockedBalance(currentWallet.currentSubaddressAccount));
+        leftPanel.unlockedBalanceTextFiat = middlePanel.state === "Receive" ? qsTr("HIDDEN") : priceManager.convert(currentWallet.unlockedBalance(currentWallet.currentSubaddressAccount));
+        console.log("Unlocked balance text fiat is " + leftPanel.unlockedBalanceTextFiat);
         middlePanel.balanceText = leftPanel.balanceText = middlePanel.state === "Receive" ? qsTr("HIDDEN") : walletManager.displayAmount(currentWallet.balance(currentWallet.currentSubaddressAccount));
+        leftPanel.balanceTextFiat = middlePanel.state === "Receive" ? qsTr("HIDDEN") : priceManager.convert(currentWallet.balance(currentWallet.currentSubaddressAccount));
+        console.log("Balance text fiat is " + leftPanel.balanceTextFiat);
     }
 
     function onWalletConnectionStatusChanged(status){

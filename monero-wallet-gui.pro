@@ -55,7 +55,6 @@ HEADERS += \
     src/prices/PriceManager.h \
     src/prices/PriceSource.h \
     src/prices/qtjsonpath.h \
-    src/prices/currencies.h \
     Logger.h \
     MainApp.h \
     src/prices/logging.h

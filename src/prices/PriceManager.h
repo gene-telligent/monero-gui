@@ -9,17 +9,17 @@
 #include <QSet>
 
 #include "PriceSource.h"
+#include "currency.h"
 
 class Price;
-class Currency;
 
 class PriceManager : public QObject
 {
     Q_OBJECT
     Q_PROPERTY(bool running READ running)
     Q_PROPERTY(bool refreshing READ refreshing)
-    Q_PROPERTY(bool priceAvailable READ priceAvailable)
-    Q_PROPERTY(Currency * currency READ currency)
+    Q_PROPERTY(bool priceAvailable READ priceAvailable NOTIFY priceRefreshed)
+    Q_PROPERTY(Currency * currentCurrency READ currentCurrency)
     Q_PROPERTY(Price * price READ price)
     Q_PROPERTY(QSet<PriceSource*> priceSourcesAvailable READ priceSourcesAvailable)
     Q_PROPERTY(PriceSource * currentPriceSource READ currentPriceSource)
@@ -38,18 +38,31 @@ public:
     // Are we refreshing the price?
     Q_INVOKABLE bool refreshing() const;
     // Get the current currency
-    Q_INVOKABLE Currency * currency() const;
+    Q_INVOKABLE Currency * currentCurrency() const;
     // Get the current price
     Q_INVOKABLE Price *price() const;
-    // Get price sources which are available
-    Q_INVOKABLE QSet<PriceSource*> priceSourcesAvailable() const;
+    // Convert the amount given at the current price and currency
+    Q_INVOKABLE QString convert(quint64 amount) const;
     // Get current price source
     Q_INVOKABLE PriceSource * currentPriceSource() const;
+    // Set price source
+    Q_INVOKABLE bool setPriceSource(int index);
+    // Set currency
+    //Q_INVOKABLE bool setCurrency(int index);
+    // Get price sources which are available
+    Q_INVOKABLE QSet<PriceSource*> priceSourcesAvailable() const;
+    // Get the available price sources in a StringListModel for display
+    Q_INVOKABLE QStringListModel * priceSourcesAvailableModel() const;
+    // Get list of available currencies
+    Q_INVOKABLE CurrencySet currenciesAvailable() const;
+    // Get the available currencies in a StringListModel for display
+    Q_INVOKABLE QStringListModel * currenciesAvailableModel() const;
 
     Q_INVOKABLE void handleError(const QString &msg) const;
 
 private:
     void updatePrice(QNetworkReply *reply) const;
+    bool updateCurrenciesAvailable();
 
 signals:
     void starting() const;
@@ -78,9 +91,12 @@ private:
     mutable bool m_refreshing;
     QNetworkAccessManager * m_manager;
     QTimer * m_timer;
-    Price * m_price;
+    Price * m_currentPrice;
+    Currency * m_currentCurrency;
     PriceSource * m_currentPriceSource;
-    const QSet<PriceSource *> m_price_sources = {PriceSources::CoinMarketCap};
+    const QSet<PriceSource *> m_priceSources = {PriceSources::CoinMarketCap};
+    mutable QStringListModel * m_priceSourcesAvailableModel;
+    mutable QStringListModel * m_currenciesAvailableModel;
 
 };
 
