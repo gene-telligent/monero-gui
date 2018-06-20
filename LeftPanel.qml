@@ -108,9 +108,6 @@ Rectangle {
             id: balanceArea
             anchors.fill: parent
             hoverEnabled: true
-            cursorShape: Qt.PointingHandCursor
-            //onEntered: fiatVisible = true
-            //onExited: fiatVisible = false
         }
 
         RowLayout {

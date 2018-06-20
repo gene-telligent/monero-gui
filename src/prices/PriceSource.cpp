@@ -39,7 +39,7 @@ QUrl PriceSource::renderUrl(Currency * currency)
 
     QUrl renderedUrl(m_base_url);
     QUrlQuery query = QUrlQuery();
-    query.addQueryItem(QStringLiteral("convert"), currency->code());
+    query.addQueryItem(QStringLiteral("convert"), currency->label());
     renderedUrl.setQuery(query);
     return renderedUrl;
 }
@@ -48,7 +48,7 @@ bool PriceSource::updatePriceFromReply(Price *price, Currency * currency, QJsonD
 {
     QtJsonPath walker(reply);
     QString modpath(m_json_path);
-    modpath.replace(QLatin1Literal("{CURRENCY}"), currency->code());
+    modpath.replace(QLatin1Literal("{CURRENCY}"), currency->label());
     qDebug() << "Using path of " << modpath;
     QVariant res = walker.getValue(modpath);
     qDebug() << "Got walked value " << res << " with metatype " << res.userType();

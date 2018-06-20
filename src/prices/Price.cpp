@@ -28,7 +28,7 @@ void Price::update(qreal price, Currency * currency)
 
 QString Price::currencyCode() const
 {
-    return m_currency->code();
+    return m_currency->label();
 }
 
 qreal Price::price() const

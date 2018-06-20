@@ -8,8 +8,7 @@
 #include <QSet>
 #include <QUrl>
 #include <QString>
-#include <QNetworkReply>
-#include <QStringListModel>
+#include <QVector>
 
 class Price;
 
@@ -43,5 +42,7 @@ private:
 namespace PriceSources {
     extern PriceSource * const CoinMarketCap;
 }
+
+typedef QVector<PriceSource *> PriceSourceSet;
 
 #endif // PRICESOURCE_H

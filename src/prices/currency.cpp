@@ -2,17 +2,17 @@
 
 #include "QLocale"
 
-Currency::Currency(const QString code, const QChar symbol, const int precision, QObject *parent) :
+Currency::Currency(const QString label, const QChar symbol, const int precision, QObject *parent) :
     QObject(parent),
-    m_code(code),
+    m_label(label),
     m_symbol(symbol),
     m_precision(precision)
 {
 }
 
-QString Currency::code() const
+QString Currency::label() const
 {
-    return m_code;
+    return m_label;
 }
 
 QChar Currency::symbol() const

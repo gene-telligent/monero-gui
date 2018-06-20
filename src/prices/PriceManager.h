@@ -7,11 +7,14 @@
 #include <QNetworkReply>
 #include <QString>
 #include <QSet>
+#include <QModelIndex>
 
 #include "PriceSource.h"
 #include "currency.h"
 
 class Price;
+class CurrencySelectorModel;
+class PriceSourceSelectorModel;
 
 class PriceManager : public QObject
 {
@@ -21,16 +24,18 @@ class PriceManager : public QObject
     Q_PROPERTY(bool priceAvailable READ priceAvailable NOTIFY priceRefreshed)
     Q_PROPERTY(Currency * currentCurrency READ currentCurrency)
     Q_PROPERTY(Price * price READ price)
-    Q_PROPERTY(QSet<PriceSource*> priceSourcesAvailable READ priceSourcesAvailable)
+    Q_PROPERTY(const PriceSourceSet priceSourcesAvailable READ priceSourcesAvailable)
     Q_PROPERTY(PriceSource * currentPriceSource READ currentPriceSource)
 
 public:
     static PriceManager * instance(QNetworkAccessManager *manager);
 
     // Start the price polling thread
-    Q_INVOKABLE bool start();
+    Q_INVOKABLE void start();
     // Stop the price polling thread
-    Q_INVOKABLE bool stop();
+    Q_INVOKABLE void stop();
+    // Restart the price polling thread
+    Q_INVOKABLE void restart();
     // Is there a price available yet?
     Q_INVOKABLE bool priceAvailable() const;
     // Are we running?
@@ -46,23 +51,23 @@ public:
     // Get current price source
     Q_INVOKABLE PriceSource * currentPriceSource() const;
     // Set price source
-    Q_INVOKABLE bool setPriceSource(int index);
+    Q_INVOKABLE void setPriceSource(QModelIndex index);
     // Set currency
-    //Q_INVOKABLE bool setCurrency(int index);
+    Q_INVOKABLE void setCurrency(QModelIndex index);
     // Get price sources which are available
-    Q_INVOKABLE QSet<PriceSource*> priceSourcesAvailable() const;
+    Q_INVOKABLE PriceSourceSet priceSourcesAvailable() const;
     // Get the available price sources in a StringListModel for display
-    Q_INVOKABLE QStringListModel * priceSourcesAvailableModel() const;
+    Q_INVOKABLE PriceSourceSelectorModel *priceSourcesAvailableModel() const;
     // Get list of available currencies
     Q_INVOKABLE CurrencySet currenciesAvailable() const;
     // Get the available currencies in a StringListModel for display
-    Q_INVOKABLE QStringListModel * currenciesAvailableModel() const;
+    Q_INVOKABLE CurrencySelectorModel * currenciesAvailableModel() const;
 
     Q_INVOKABLE void handleError(const QString &msg) const;
 
 private:
     void updatePrice(QNetworkReply *reply) const;
-    bool updateCurrenciesAvailable();
+    void updateCurrenciesAvailable();
 
 signals:
     void starting() const;
@@ -82,6 +87,8 @@ public slots:
     void handleHTTPFinished() const;
     // Called when the HTTP request fails
     void handleNetworkError(const QNetworkReply *reply) const;
+    // Called when the PriceSource is changed
+    void updateCurrenciesAvailable() const;
 
 private:
     explicit PriceManager(QNetworkAccessManager *manager, QObject *parent = 0);
@@ -94,9 +101,9 @@ private:
     Price * m_currentPrice;
     Currency * m_currentCurrency;
     PriceSource * m_currentPriceSource;
-    const QSet<PriceSource *> m_priceSources = {PriceSources::CoinMarketCap};
-    mutable QStringListModel * m_priceSourcesAvailableModel;
-    mutable QStringListModel * m_currenciesAvailableModel;
+    const PriceSourceSet m_priceSources = {PriceSources::CoinMarketCap};
+    mutable PriceSourceSelectorModel * m_priceSourcesAvailableModel;
+    mutable CurrencySelectorModel * m_currenciesAvailableModel;
 
 };
 

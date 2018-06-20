@@ -3,6 +3,8 @@
 #include "currency.h"
 #include "prices/logging.h"
 #include "PriceSource.h"
+#include "CurrencySelectorModel.h"
+#include "PriceSourceSelectorModel.h"
 
 #include <QTimer>
 #include <QUrl>
@@ -46,7 +48,10 @@ PriceManager::PriceManager(QNetworkAccessManager *manager, QObject *parent) :
     m_refreshing = false;
     m_currentPrice = new Price(this);
     m_timer = new QTimer(this);
+
     connect(m_timer, SIGNAL(timeout()), this, SLOT(runPriceRefresh()));
+    connect(this, SIGNAL(priceSourceChanged()), this, SLOT(updateCurrenciesAvailable()));
+    connect(this, SIGNAL(currencyChanged()), this, SLOT(runPriceRefresh()));
 
     // DEBUGGING TIME
     m_currentPriceSource = PriceSources::CoinMarketCap;
@@ -60,24 +65,28 @@ PriceManager::PriceManager(QObject *parent) :
 {
 }
 
-bool PriceManager::start()
+void PriceManager::start()
 {
     qCDebug(logPriceManager) << "Starting PriceManager";
     emit starting();
     m_running = true;
     runPriceRefresh();
     m_timer->start(DEFAULT_REFRESH_PERIOD_MILLISECONDS);
-    return true;
 }
 
-bool PriceManager::stop()
+void PriceManager::stop()
 {
     qCDebug(logPriceManager) << "Stopping PriceManager";
     emit stopping();
     m_timer->stop();
     m_running = false;
     emit stopped();
-    return true;
+}
+
+void PriceManager::restart()
+{
+    stop();
+    start();
 }
 
 void PriceManager::runPriceRefresh() const
@@ -153,74 +162,8 @@ void PriceManager::updatePrice(QNetworkReply* reply) const
     }
 
     bool success = m_currentPriceSource->updatePriceFromReply(m_currentPrice, m_currentCurrency, doc);
-    /*
-    QJsonObject respObj = doc.object();
 
-    qDebug() << "got respObj";
-    QJsonValue dataVal = respObj.value("data");
-
-    qDebug() << "parsed data dataval";
-
-    if (dataVal.isUndefined()) {
-        handleError("Key 'data' not present in JSON response: " + doc.toJson());
-        return;
-    }
-
-    if (!dataVal.isObject()) {
-        handleError("Key 'data' in JSON response is not an object: " + doc.toJson());
-        return;
-    }
-
-    QJsonValue quotesVal = dataVal.toObject().value("quotes");
-
-    qDebug() << "parsed quotesVal";
-
-    if (quotesVal.isUndefined()) {
-        handleError("Key 'data.quotes' not present in JSON response: " + doc.toJson());
-        return;
-    }
-
-    if (!quotesVal.isObject()) {
-        handleError("Key 'data.quotes' in JSON response is not an object: " + doc.toJson());
-        return;
-    }
-
-    QJsonValue currencyVal = quotesVal.toObject().value("USD");
-
-    qDebug() << "parsed currencyVal";
-
-    if (currencyVal.isUndefined()) {
-        handleError("Key 'data.quotes.currency' not present in JSON response: " + doc.toJson());
-        return;
-    }
-
-    if (!currencyVal.isObject()) {
-        handleError("Key 'data.quotes.currency' in JSON response is not an object: " + doc.toJson());
-        return;
-    }
-
-    QJsonValue priceVal = currencyVal.toObject().value("price");
-
-    qDebug() << "parsed priceVal";
-
-    if (priceVal.isUndefined()) {
-        handleError("Key 'data.quotes.currency.price' not present in JSON response: " + doc.toJson());
-        return;
-    }
-
-    if (!priceVal.isDouble()) {
-        handleError("Key 'data.quotes.currency.price' in JSON response is not a double: " + doc.toJson());
-        return;
-    }
-
-    qDebug() << "Parsed JSON, updating price";
-
-    qreal price = static_cast<qreal>(priceVal.toDouble());
-
-    qDebug() << "Static cast price";
-    m_currentPrice->update(price, Currencies::USD);
-    */
-    qDebug() << "Got price " << m_currentPrice->price() << " for " << m_currentPrice->currency()->code();
+    qDebug() << "Got price " << m_currentPrice->price() << " for " << m_currentPrice->currency()->label();
     if (success)
         emit priceRefreshed();
 }
@@ -246,19 +189,17 @@ QString PriceManager::convert(quint64 amount) const
     return m_currentPrice->convert(amount);
 }
 
-QSet<PriceSource *> PriceManager::priceSourcesAvailable() const
+PriceSourceSet PriceManager::priceSourcesAvailable() const
 {
     return m_priceSources;
 }
 
-QStringListModel *PriceManager::priceSourcesAvailableModel() const
+PriceSourceSelectorModel *PriceManager::priceSourcesAvailableModel() const
 {
     if (!m_priceSourcesAvailableModel) {
         PriceManager * pm = const_cast<PriceManager*>(this);
-        QStringList l;
-        for (const PriceSource * p : m_priceSources)
-            l.append(p->label());
-        m_priceSourcesAvailableModel = new QStringListModel(l, pm);
+        //PriceSourceSet * pss = const_cast<PriceSourceSet*>(m_priceSources);
+        m_priceSourcesAvailableModel = new PriceSourceSelectorModel(pm, &m_priceSources);
     }
 
     return m_priceSourcesAvailableModel;
@@ -271,42 +212,52 @@ CurrencySet PriceManager::currenciesAvailable() const
     return m_currentPriceSource->currenciesAvailable();
 }
 
-bool PriceManager::updateCurrenciesAvailable()
+void PriceManager::updateCurrenciesAvailable()
 {
-    QStringList l;
-    for (const Currency * c : currenciesAvailable())
-        l.append(c->code());
-    currenciesAvailableModel()->setStringList(l);
-    return true;
+    m_currenciesAvailableModel->setAvailableCurrencies(currenciesAvailable());
 }
 
-QStringListModel *PriceManager::currenciesAvailableModel() const
+CurrencySelectorModel *PriceManager::currenciesAvailableModel() const
 {
     if (!m_currenciesAvailableModel) {
         PriceManager * pm = const_cast<PriceManager*>(this);
-        m_currenciesAvailableModel = new QStringListModel(pm);
+        m_currenciesAvailableModel = new CurrencySelectorModel(pm);
     }
     return m_currenciesAvailableModel;
 }
 
-bool PriceManager::setPriceSource(int index)
+void PriceManager::setPriceSource(QModelIndex index)
 {
-    /*
-    QVariant p = m_priceSourcesAvailableModel->data(index);
+    QVariant p = m_priceSourcesAvailableModel->data(index, PriceSourceSelectorModel::PriceSourceRole);
     if (!p.isValid() || p.isNull()) {
         qDebug() << "Invalid price source index passed, NOOP";
         return;
     }
 
-    if (!p.canConvert<PriceSource>()) {
+    if (!p.canConvert<PriceSource *>()) {
         qDebug() << "Did not get a price source in the model -- this should never happen";
         return;
     }
 
-    m_currentPriceSource = p.value<PriceSource>();
-    updateCurrenciesAvailable();
-    */
-    return true;
+    m_currentPriceSource = p.value<PriceSource *>();
+    emit priceSourceChanged();
+}
+
+void PriceManager::setCurrency(QModelIndex index)
+{
+    QVariant c = m_currenciesAvailableModel->data(index, CurrencySelectorModel::CurrencyRole);
+    if (!c.isValid() || c.isNull()) {
+        qDebug() << "Invalid currency index passed, NOOP";
+        return;
+    }
+
+    if (!c.canConvert<Currency *>()) {
+        qDebug() << "Did not get a price source in the model -- this should never happen";
+        return;
+    }
+
+    m_currentCurrency = c.value<Currency *>();
+    emit currencyChanged();
 }
 
 PriceSource *PriceManager::currentPriceSource() const

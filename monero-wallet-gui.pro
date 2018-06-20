@@ -57,7 +57,9 @@ HEADERS += \
     src/prices/qtjsonpath.h \
     Logger.h \
     MainApp.h \
-    src/prices/logging.h
+    src/prices/logging.h \
+    src/prices/CurrencySelectorModel.h \
+    src/prices/PriceSourceSelectorModel.h
 
 SOURCES += main.cpp \
     filter.cpp \
@@ -88,7 +90,9 @@ SOURCES += main.cpp \
     src/prices/PriceSource.cpp \
     Logger.cpp \
     MainApp.cpp \
-    src/prices/logging.cpp
+    src/prices/logging.cpp \
+    src/prices/CurrencySelectorModel.cpp \
+    src/prices/PriceSourceSelectorModel.cpp
 
 CONFIG(DISABLE_PASS_STRENGTH_METER) {
     HEADERS -= src/zxcvbn-c/zxcvbn.h
