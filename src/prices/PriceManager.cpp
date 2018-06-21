@@ -54,10 +54,10 @@ PriceManager::PriceManager(QNetworkAccessManager *manager, QObject *parent) :
     connect(this, SIGNAL(currencyChanged()), this, SLOT(runPriceRefresh()));
 
     // DEBUGGING TIME
-    m_currentPriceSource = PriceSources::CoinMarketCap;
-    m_currentCurrency = Currencies::USD;
+    //m_currentPriceSource = PriceSources::CoinMarketCap;
+    //m_currentCurrency = Currencies::USD;
 
-    start();
+    //start();
 }
 
 PriceManager::PriceManager(QObject *parent) :
@@ -115,6 +115,7 @@ void PriceManager::runPriceRefresh() const
 
     qDebug() << "Request constructed";
 
+    // TODO: maybe store this locally
     QNetworkReply *reply = m_manager->get(request);
 
     qDebug() << "Request sent to manager, reply pointer responded";
@@ -189,33 +190,72 @@ QString PriceManager::convert(quint64 amount) const
     return m_currentPrice->convert(amount);
 }
 
-PriceSourceSet PriceManager::priceSourcesAvailable() const
+QList<PriceSource*> PriceManager::priceSourcesAvailable() const
 {
-    return m_priceSources;
+    return m_priceSourcesAvailable;
 }
+
 
 PriceSourceSelectorModel *PriceManager::priceSourcesAvailableModel() const
 {
     if (!m_priceSourcesAvailableModel) {
         PriceManager * pm = const_cast<PriceManager*>(this);
-        //PriceSourceSet * pss = const_cast<PriceSourceSet*>(m_priceSources);
-        m_priceSourcesAvailableModel = new PriceSourceSelectorModel(pm, &m_priceSources);
+        m_priceSourcesAvailableModel = new PriceSourceSelectorModel(pm, m_priceSourcesAvailable);
     }
 
     return m_priceSourcesAvailableModel;
 }
 
-CurrencySet PriceManager::currenciesAvailable() const
+
+QList<Currency*> PriceManager::currenciesAvailable() const
 {
     if (!m_currentPriceSource)
-        return CurrencySet();
+        return QList<Currency*>();
+    qDebug() << "currenciesAvailable call made!";
+    qDebug() << "current price source is " << m_currentPriceSource;
+    qDebug() << "currencies available are " << m_currentPriceSource->currenciesAvailable();
     return m_currentPriceSource->currenciesAvailable();
 }
 
+void PriceManager::setPriceSource(int index)
+{
+    if (index < 0 || (unsigned)index >= m_priceSourcesAvailable.count()) {
+        qDebug() << "Bad index passed to setPriceSource; NOOP";
+        return;
+    }
+
+    m_currentPriceSource = m_priceSourcesAvailable.at(index);
+    emit priceSourceChanged();
+}
+
+void PriceManager::setCurrency(int index)
+{
+    if (index < 0 || (unsigned)index >= currenciesAvailable().count()) {
+        qDebug() << "Bad index passed to setCurrency; NOOP";
+        return;
+    }
+
+    m_currentCurrency = currenciesAvailable().at(index);
+    emit currencyChanged();
+}
+
+
 void PriceManager::updateCurrenciesAvailable()
 {
-    m_currenciesAvailableModel->setAvailableCurrencies(currenciesAvailable());
+    qDebug() << "POricesources available currently are: " << m_priceSourcesAvailable;
+    qDebug() << "Setting available currencies within the currenciesAvailableModel";
+    QList<Currency*> currenciesAvailable = QList<Currency*>(this->currenciesAvailable());
+    qDebug() << "Got currencies available of " << currenciesAvailable;
+    qDebug() << "another test";
+    /*
+    for (auto c: currenciesAvailable) {
+        qDebug() << "Currency: " << c->label() << " : " << c;
+    }
+    */
+    //m_currenciesAvailableModel->setAvailableCurrencies(currenciesAvailable);
+    qDebug() << "CurrenciesAvailable have been set!";
 }
+
 
 CurrencySelectorModel *PriceManager::currenciesAvailableModel() const
 {
@@ -226,8 +266,11 @@ CurrencySelectorModel *PriceManager::currenciesAvailableModel() const
     return m_currenciesAvailableModel;
 }
 
+
+
 void PriceManager::setPriceSource(QModelIndex index)
 {
+    qDebug() << "Setting price source using model index " << index;
     QVariant p = m_priceSourcesAvailableModel->data(index, PriceSourceSelectorModel::PriceSourceRole);
     if (!p.isValid() || p.isNull()) {
         qDebug() << "Invalid price source index passed, NOOP";
@@ -239,8 +282,11 @@ void PriceManager::setPriceSource(QModelIndex index)
         return;
     }
 
+    qDebug() << "received variant " << p;
     m_currentPriceSource = p.value<PriceSource *>();
+    qDebug() << "set current priceSource to " << m_currentPriceSource->label();
     emit priceSourceChanged();
+    qDebug() << "change emitted";
 }
 
 void PriceManager::setCurrency(QModelIndex index)
@@ -259,6 +305,7 @@ void PriceManager::setCurrency(QModelIndex index)
     m_currentCurrency = c.value<Currency *>();
     emit currencyChanged();
 }
+
 
 PriceSource *PriceManager::currentPriceSource() const
 {

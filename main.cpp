@@ -55,6 +55,10 @@
 #include "model/SubaddressModel.h"
 #include "wallet/api/wallet2_api.h"
 #include "prices/PriceManager.h"
+#include "prices/PriceSource.h"
+#include "prices/PriceSourceSelectorModel.h"
+#include "prices/CurrencySelectorModel.h"
+#include "prices/currency.h"
 #include "Logger.h"
 #include "MainApp.h"
 
@@ -193,8 +197,21 @@ int main(int argc, char *argv[])
     qmlRegisterUncreatableType<Subaddress>("moneroComponents.Subaddress", 1, 0, "Subaddress",
                                                         "Subaddress can't be instantiated directly");
 
+    // TODO: put these in their own namespace for easy removal (.ext maybe?)
     qmlRegisterUncreatableType<PriceManager>("moneroComponents.PriceManager", 1, 0, "PriceManager",
                                                         "PriceManager can't be instantiated directly");
+
+    qmlRegisterUncreatableType<PriceSource>("moneroComponents.PriceSource", 1, 0, "PriceSource",
+                                                        "PriceSource can't be instantiated directly");
+
+    qmlRegisterUncreatableType<PriceSourceSelectorModel>("moneroComponents.PriceSourceSelectorModel", 1, 0, "PriceSourceSelectorModel",
+                                                        "PriceSourceSelectorModel can't be instantiated directly");
+
+    qmlRegisterUncreatableType<Currency>("moneroComponents.Currency", 1, 0, "Currency",
+                                                        "Currency can't be instantiated directly");
+
+    qmlRegisterUncreatableType<CurrencySelectorModel>("moneroComponents.CurrencySelectorModel", 1, 0, "CurrencySelectorModel",
+                                                        "CurrencySelectorModel can't be instantiated directly");
 
     qRegisterMetaType<PendingTransaction::Priority>();
     qRegisterMetaType<TransactionInfo::Direction>();

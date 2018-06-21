@@ -478,6 +478,102 @@ Rectangle {
             }
         }
 
+
+        //! Manage pricing
+        RowLayout {
+            visible: !isMobile
+
+            Label {
+                id: convertCurrencyLabel
+                fontSize: 22 * scaleRatio
+                text: qsTr("Convert currency") + translationManager.emptyString
+            }
+
+            Rectangle {
+                anchors.top: convertCurrencyLabel.bottom
+                anchors.topMargin: 4
+                anchors.left: parent.left
+                anchors.right: parent.right
+                Layout.fillWidth: true
+                height: 2
+                color: Style.dividerColor
+                opacity: Style.dividerOpacity
+            }
+        }
+
+        RowLayout{
+            CheckBox {
+                id: enableConvertCurrency
+                text: qsTr("Enable displaying balance in other currencies") + translationManager.emptyString
+                checked: persistentSettings.enableCurrencyConversion
+                onCheckedChanged: persistentSettings.enableCurrencyConversion = checked
+            }
+        }
+
+        GridLayout {
+            visible: enableConvertCurrency.checked
+            columns: (isMobile)? 1 : 2
+            Layout.fillWidth: true
+            columnSpacing: 32
+
+            ColumnLayout {
+                spacing: 0
+                Layout.fillWidth: true
+
+                StandardDropdown {
+                    id: priceSourceDropDown
+                    dataModel: priceManager.priceSourcesAvailableModel
+                    currentIndex: appWindow.persistentSettings.currencyConversionSourceIndex
+                    onChanged: {
+                        console.log("Changing!");
+                        var idx = dataModel.index(currentIndex, 0);
+                        console.log("IDX created");
+                        priceManager.setPriceSource(idx);
+                        console.log("Price source set");
+                        appWindow.persistentSettings.currencyConversionSourceIndex = currentIndex;
+                    }
+                    Layout.fillWidth: true
+                    shadowReleasedColor: "#FF4304"
+                    shadowPressedColor: "#B32D00"
+                    releasedColor: "#363636"
+                    pressedColor: "#202020"
+                }
+                // Make sure dropdown is on top
+            }
+
+            ColumnLayout {
+                Layout.fillWidth: true
+            }
+
+            /*
+            ColumnLayout {
+                Layout.fillWidth: true
+                StandardDropdown {
+                    id: priceCurrencyDropDown
+                    dataModel: priceManager.currenciesAvailable
+                    currentIndex: appWindow.persistentSettings.currencyConversionCurrencyIndex
+                    onChanged: {
+                        priceManager.setCurrency(currentIndex);
+                        appWindow.persistentSettings.currencyConversionCurrencyIndex = currentIndex;
+                    }
+                    Layout.fillWidth: true
+                    shadowReleasedColor: "#FF4304"
+                    shadowPressedColor: "#B32D00"
+                    releasedColor: "#363636"
+                    pressedColor: "#202020"
+                }
+                // Make sure dropdown is on top
+            }*/
+
+            ColumnLayout {
+                Layout.fillWidth: true
+            }
+
+            z: parent.z + 1
+        }
+
+        // end manage pricing
+
         RowLayout {
             visible: !isMobile
             Label {
@@ -801,6 +897,7 @@ Rectangle {
     Component.onCompleted: {
         if(typeof daemonManager != "undefined")
             daemonManager.daemonConsoleUpdated.connect(onDaemonConsoleUpdated)
+
     }
 
     function onDaemonConsoleUpdated(message){

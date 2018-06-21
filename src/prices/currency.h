@@ -2,7 +2,7 @@
 #define CURRENCY_H
 
 #include <QObject>
-#include <QSet>
+#include <QList>
 
 class Currency : public QObject
 {
@@ -30,5 +30,5 @@ namespace Currencies {
     extern Currency * const BTC;
 }
 
-typedef QVector<Currency *> CurrencySet;
+typedef QList<Currency*> CurrencySet;
 #endif // CURRENCY_H

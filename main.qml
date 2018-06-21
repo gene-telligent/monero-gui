@@ -946,6 +946,7 @@ ApplicationWindow {
     function startPriceManager() {
         console.log("Starting PriceManager");
         priceManager.start();
+        console.log("DEBUG!! " + priceManager.priceSourcesAvailable);
         //currentPrice = priceManager.price;
     }
 
@@ -1047,7 +1048,9 @@ ApplicationWindow {
         property bool segregatePreForkOutputs: true
         property bool keyReuseMitigation2: true
         property int segregationHeight: 0
-        property bool updateMoneroPrice: true
+        property bool enableCurrencyConversion: false
+        property int currencyConversionSourceIndex: 0
+        property int currencyConversionCurrencyIndex: 0
     }
 
     // Information dialog

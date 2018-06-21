@@ -7,7 +7,7 @@
 class CurrencySelectorModel : public QAbstractListModel
 {
     Q_OBJECT
-    Q_PROPERTY(CurrencySet availableCurrencies READ availableCurrencies NOTIFY availableCurrenciesChanged)
+    Q_PROPERTY(QList<Currency*> availableCurrencies READ availableCurrencies NOTIFY availableCurrenciesChanged)
 public:
     enum CurrencyViewRole {
         CurrencyRole =  Qt::UserRole + 1,
@@ -17,7 +17,7 @@ public:
     Q_ENUM(CurrencyViewRole)
 
     explicit CurrencySelectorModel(QObject *parent = nullptr);
-    CurrencySet * availableCurrencies() const;
+    QList<Currency*> availableCurrencies() const;
 
 
     virtual QVariant data(const QModelIndex & index, int role = Qt::DisplayRole) const override;
@@ -26,7 +26,7 @@ public:
 
 
 private:
-    void setAvailableCurrencies(const CurrencySet currencies);
+    void setAvailableCurrencies(QList<Currency*> currencies);
 signals:
     void availableCurrenciesChanged();
 
@@ -34,7 +34,7 @@ public slots:
 
 private:
     friend class PriceManager;
-    CurrencySet * m_availableCurrencies;
+    QList<Currency*> m_availableCurrencies;
 };
 
 #endif // CURRENCYSELECTORMODEL_H

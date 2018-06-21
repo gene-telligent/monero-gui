@@ -1,23 +1,25 @@
 #include "CurrencySelectorModel.h"
+#include <QDebug>
 
 CurrencySelectorModel::CurrencySelectorModel(QObject *parent) :
-    QAbstractListModel(parent), m_availableCurrencies(nullptr)
+    QAbstractListModel(parent)
 {
+    m_availableCurrencies = QList<Currency*>();
 }
 
-CurrencySet *CurrencySelectorModel::availableCurrencies() const
+QList<Currency*> CurrencySelectorModel::availableCurrencies() const
 {
     return m_availableCurrencies;
 }
 
 QVariant CurrencySelectorModel::data(const QModelIndex &index, int role) const
 {
-    if (!m_availableCurrencies)
+    if (m_availableCurrencies.empty())
         return QVariant();
-    if (index.row() < 0 || (unsigned)index.row() >= m_availableCurrencies->count())
+    if (index.row() < 0 || (unsigned)index.row() >= m_availableCurrencies.count())
         return QVariant();
 
-    Currency * currency = m_availableCurrencies->at(index.row());
+    Currency * currency = m_availableCurrencies.at(index.row());
     Q_ASSERT(currency);
     if (!currency) {
         qCritical("%s: internal error: no currency info for index %d", __FUNCTION__, index.row());
@@ -42,7 +44,7 @@ QVariant CurrencySelectorModel::data(const QModelIndex &index, int role) const
 
 int CurrencySelectorModel::rowCount(const QModelIndex &parent) const
 {
-    return m_availableCurrencies->count();
+    return m_availableCurrencies.count();
 }
 
 QHash<int, QByteArray> CurrencySelectorModel::roleNames() const
@@ -57,8 +59,16 @@ QHash<int, QByteArray> CurrencySelectorModel::roleNames() const
     return roleNames;
 }
 
-void CurrencySelectorModel::setAvailableCurrencies(const CurrencySet currencies)
+void CurrencySelectorModel::setAvailableCurrencies(QList<Currency*> currencies)
 {
-    m_availableCurrencies = new CurrencySet(currencies);
+    qDebug() << "beginning to reset model";
+    qDebug() << "Got currency list " << currencies;
+    beginResetModel();
+    qDebug() << "assigning available currencies";
+    m_availableCurrencies = QList<Currency*>(currencies);
+    qDebug() << "available currencies assigned";
+    endResetModel();
+    qDebug() << "Reset model emitted, emitting availablecurrencieschanged";
     emit availableCurrenciesChanged();
+    qDebug() << "available currencies changed emitted";
 }

@@ -4,11 +4,9 @@
 #include "currency.h"
 
 #include <QObject>
-#include <QStringList>
-#include <QSet>
 #include <QUrl>
 #include <QString>
-#include <QVector>
+#include <QList>
 
 class Price;
 
@@ -22,27 +20,28 @@ class PriceSource : public QObject
     // URL used to contact the API for prices
     Q_PROPERTY(QUrl baseUrl READ baseUrl)
 public:
-    explicit PriceSource(QObject *parent = nullptr);
+    explicit PriceSource(QString label = QString(), QString baseUrl = QString(), QList<Currency*> supportedCurrencies = {}, QString jsonPath = QString(), QObject *parent = nullptr);
     QString label() const;
-    QUrl baseUrl() const;
+    QString baseUrl() const;
     // Get list of available currencies
-    Q_INVOKABLE CurrencySet currenciesAvailable() const;
+    Q_INVOKABLE QList<Currency*> currenciesAvailable() const;
 private:
     bool updatePriceFromReply(Price * price, Currency * currency, QJsonDocument & reply);
     QUrl renderUrl(Currency * currency);
 
 private:
     friend class PriceManager;
-    const QString m_label = QString("CoinMarketCap");
-    const QUrl m_base_url = QUrl("https://api.coinmarketcap.com/v2/ticker/328/");
-    const CurrencySet m_currencies = {Currencies::USD, Currencies::GBP, Currencies::BTC};
-    const QString m_json_path = "data/quotes/{CURRENCY}/price";
+    const QString m_label;
+    const QString m_base_url;
+    const QList<Currency*> m_currencies;
+    const QString m_json_path;
 };
 
 namespace PriceSources {
     extern PriceSource * const CoinMarketCap;
+    extern PriceSource * const Binance;
 }
 
-typedef QVector<PriceSource *> PriceSourceSet;
+//typedef QList<PriceSource *> PriceSourceSet;
 
 #endif // PRICESOURCE_H

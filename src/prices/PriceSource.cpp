@@ -11,7 +11,25 @@
 #include <QUrlQuery>
 #include <QStringListModel>
 
-PriceSource::PriceSource(QObject *parent) :
+namespace PriceSources {
+    PriceSource * const CoinMarketCap = new PriceSource(
+                QString("CoinMarketCap"),
+                QString("https://api.coinmarketcap.com/v2/ticker/328/"),
+                {Currencies::USD, Currencies::GBP, Currencies::BTC},
+                "data/quotes/{CURRENCY}/price");
+    PriceSource * const Binance = new PriceSource(
+                QString("Binance"),
+                QString("https://api.binance.com/api/v1/ticker/24hr?symbol=XMR{CURRENCY}"),
+                {Currencies::USD, Currencies::GBP, Currencies::BTC},
+                "lastPrice");
+}
+
+
+PriceSource::PriceSource(QString label, QString baseUrl, QList<Currency*> supportedCurrencies, QString jsonPath, QObject *parent) :
+    m_label(label),
+    m_base_url(baseUrl),
+    m_currencies(supportedCurrencies),
+    m_json_path(jsonPath),
     QObject(parent)
 {
 
@@ -22,25 +40,23 @@ QString PriceSource::label() const
     return m_label;
 }
 
-QUrl PriceSource::baseUrl() const
+QString PriceSource::baseUrl() const
 {
     return m_base_url;
 }
 
-CurrencySet PriceSource::currenciesAvailable() const
+QList<Currency*> PriceSource::currenciesAvailable() const
 {
+    qDebug() << "currencies available called from pricesource";
+    qDebug() << "currencies are: " << m_currencies;
     return m_currencies;
 }
 
 QUrl PriceSource::renderUrl(Currency * currency)
 {
-    if (currency == Currencies::USD)
-        return m_base_url;
-
-    QUrl renderedUrl(m_base_url);
-    QUrlQuery query = QUrlQuery();
-    query.addQueryItem(QStringLiteral("convert"), currency->label());
-    renderedUrl.setQuery(query);
+    QString renderedBaseUrl(m_base_url);
+    renderedBaseUrl.replace(QLatin1Literal("{CURRENCY}"), currency->label());
+    QUrl renderedUrl(renderedBaseUrl);
     return renderedUrl;
 }
 
@@ -66,6 +82,3 @@ bool PriceSource::updatePriceFromReply(Price *price, Currency * currency, QJsonD
     return true;
 }
 
-namespace PriceSources {
-    PriceSource * const CoinMarketCap = new PriceSource();
-}

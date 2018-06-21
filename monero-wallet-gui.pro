@@ -221,7 +221,7 @@ win32 {
     }
 
     # WIN64 Target settings
-    contains(QMAKE_HOST.arch, x86_64) {
+    contains(MSYS_HOST_ARCH, x86_64) {
         MSYS_MINGW_PATH=/mingw64
 
     # WIN32 Target settings
@@ -265,7 +265,7 @@ win32 {
         -lIphlpapi \
         -lgdi32
     
-    !contains(QMAKE_TARGET.arch, x86_64) {
+    !contains(MSYS_HOST_ARCH, x86_64) {
         message("Target is 32bit")
         ## Windows x86 (32bit) specific build here
         ## there's 2Mb stack in libwallet allocated internally, so we set stack=4Mb
