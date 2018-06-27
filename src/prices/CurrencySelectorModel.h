@@ -12,6 +12,7 @@ public:
     enum CurrencyViewRole {
         CurrencyRole =  Qt::UserRole + 1,
         CurrencyLabelRole,
+        CurrencySimpleDropdownRole,
         CurrencySymbolRole
     };
     Q_ENUM(CurrencyViewRole)

@@ -38,6 +38,7 @@ private:
 };
 
 namespace PriceSources {
+    extern PriceSource * const DEFAULT;
     extern PriceSource * const CoinMarketCap;
     extern PriceSource * const Binance;
 }

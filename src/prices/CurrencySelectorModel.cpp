@@ -32,6 +32,7 @@ QVariant CurrencySelectorModel::data(const QModelIndex &index, int role) const
         result = QVariant::fromValue(currency);
         break;
     case CurrencyLabelRole:
+    case CurrencySimpleDropdownRole:
         result = currency->label();
         break;
     case CurrencySymbolRole:

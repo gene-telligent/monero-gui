@@ -16,6 +16,7 @@ QList<PriceSource*> PriceSourceSelectorModel::availablePriceSources() const
 
 QVariant PriceSourceSelectorModel::data(const QModelIndex &index, int role) const
 {
+    qDebug() << "data method called with index " << index << " for model " << index.model() << " and role " << role;
     if (m_availablePriceSources.empty()) {
         qDebug() << "No available price sources configured!";
         return QVariant();

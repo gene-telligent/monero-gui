@@ -244,15 +244,7 @@ void PriceManager::updateCurrenciesAvailable()
 {
     qDebug() << "POricesources available currently are: " << m_priceSourcesAvailable;
     qDebug() << "Setting available currencies within the currenciesAvailableModel";
-    QList<Currency*> currenciesAvailable = QList<Currency*>(this->currenciesAvailable());
-    qDebug() << "Got currencies available of " << currenciesAvailable;
-    qDebug() << "another test";
-    /*
-    for (auto c: currenciesAvailable) {
-        qDebug() << "Currency: " << c->label() << " : " << c;
-    }
-    */
-    //m_currenciesAvailableModel->setAvailableCurrencies(currenciesAvailable);
+    m_currenciesAvailableModel->setAvailableCurrencies(this->currenciesAvailable());
     qDebug() << "CurrenciesAvailable have been set!";
 }
 

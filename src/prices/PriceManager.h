@@ -105,7 +105,7 @@ private:
     Price * m_currentPrice;
     Currency * m_currentCurrency;
     PriceSource * m_currentPriceSource;
-    const QList<PriceSource*> m_priceSourcesAvailable = {PriceSources::CoinMarketCap, PriceSources::Binance};
+    const QList<PriceSource*> m_priceSourcesAvailable = {PriceSources::DEFAULT, PriceSources::CoinMarketCap, PriceSources::Binance};
     mutable PriceSourceSelectorModel * m_priceSourcesAvailableModel;
     mutable CurrencySelectorModel * m_currenciesAvailableModel;
 

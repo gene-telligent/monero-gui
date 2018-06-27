@@ -12,19 +12,25 @@
 #include <QStringListModel>
 
 namespace PriceSources {
+    PriceSource * const DEFAULT = new PriceSource(
+                QString(""),
+                QString(),
+                {},
+                QString()
+                );
     PriceSource * const CoinMarketCap = new PriceSource(
                 QString("CoinMarketCap"),
                 QString("https://api.coinmarketcap.com/v2/ticker/328/"),
                 {Currencies::USD, Currencies::GBP, Currencies::BTC},
-                "data/quotes/{CURRENCY}/price");
+                QString("data/quotes/{CURRENCY}/price"));
     PriceSource * const Binance = new PriceSource(
                 QString("Binance"),
                 QString("https://api.binance.com/api/v1/ticker/24hr?symbol=XMR{CURRENCY}"),
                 {Currencies::USD, Currencies::GBP, Currencies::BTC},
-                "lastPrice");
+                QString("lastPrice"));
 }
 
-
+// TODO: refactor this into virtual functions and inheritance
 PriceSource::PriceSource(QString label, QString baseUrl, QList<Currency*> supportedCurrencies, QString jsonPath, QObject *parent) :
     m_label(label),
     m_base_url(baseUrl),

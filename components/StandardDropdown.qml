@@ -33,6 +33,7 @@ import "../components" as MoneroComponents
 Item {
     id: dropdown
     property alias dataModel: repeater.model
+    property alias colText: firstColText.text
     property string shadowPressedColor
     property string shadowReleasedColor
     property string pressedColor

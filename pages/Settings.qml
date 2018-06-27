@@ -38,6 +38,8 @@ import "../js/Utils.js" as Utils
 
 import "../components"
 import moneroComponents.Clipboard 1.0
+import moneroComponents.PriceSourceSelectorModel 1.0
+import moneroComponents.CurrencySelectorModel 1.0
 
 Rectangle {
     property bool viewOnly: false
@@ -525,35 +527,44 @@ Rectangle {
                     dataModel: priceManager.priceSourcesAvailableModel
                     currentIndex: appWindow.persistentSettings.currencyConversionSourceIndex
                     onChanged: {
-                        console.log("Changing!");
                         var idx = dataModel.index(currentIndex, 0);
-                        console.log("IDX created");
                         priceManager.setPriceSource(idx);
                         console.log("Price source set");
+                        //console.log("Now available currencies are : " + priceManager.currenciesAvailable + " and model size " + priceManager.currenciesAvailableModel.rowCount());
                         appWindow.persistentSettings.currencyConversionSourceIndex = currentIndex;
+                        //appWindow.persistentSettings.currencyConversionCurrencyIndex = 0;
                     }
                     Layout.fillWidth: true
                     shadowReleasedColor: "#FF4304"
                     shadowPressedColor: "#B32D00"
                     releasedColor: "#363636"
                     pressedColor: "#202020"
+
+                    // Override the update function as it refers to the "get" method which doesn't exist for c++ models
+                    function update() {
+                        var idx = dataModel.index(currentIndex, 0);
+                        var label = dataModel.data(idx, PriceSourceSelectorModel.PriceSourceLabelRole);
+                        colText = label;
+                        //colText = currentIndex < dataModel.rowCount() ? qsTr(dataModel.data(dataModel.index(currentIndex,0)).column1) + translationManager.emptyString : ""
+                    }
                 }
                 // Make sure dropdown is on top
             }
 
             ColumnLayout {
+                spacing: 0
                 Layout.fillWidth: true
-            }
 
-            /*
-            ColumnLayout {
-                Layout.fillWidth: true
+                /*
                 StandardDropdown {
-                    id: priceCurrencyDropDown
-                    dataModel: priceManager.currenciesAvailable
+                    id: currencyDropDown
+                    dataModel: priceManager.currenciesAvailableModel
+                    visible: dataModel.rowCount() > 0
                     currentIndex: appWindow.persistentSettings.currencyConversionCurrencyIndex
                     onChanged: {
-                        priceManager.setCurrency(currentIndex);
+                        var idx = dataModel.index(currentIndex, 0);
+                        priceManager.setCurrency(idx);
+                        console.log("Currency set");
                         appWindow.persistentSettings.currencyConversionCurrencyIndex = currentIndex;
                     }
                     Layout.fillWidth: true
@@ -561,9 +572,18 @@ Rectangle {
                     shadowPressedColor: "#B32D00"
                     releasedColor: "#363636"
                     pressedColor: "#202020"
+
+                    // Override the update function as it refers to the "get" method which doesn't exist for c++ models
+                    function update() {
+                        var idx = dataModel.index(currentIndex, 0);
+                        var label = dataModel.data(idx, CurrencySelectorModel.CurrencyLabelRole);
+                        colText = label;
+                        //colText = currentIndex < dataModel.rowCount() ? qsTr(dataModel.data(dataModel.index(currentIndex,0)).column1) + translationManager.emptyString : ""
+                    }
                 }
+                */
                 // Make sure dropdown is on top
-            }*/
+            }
 
             ColumnLayout {
                 Layout.fillWidth: true
@@ -897,6 +917,11 @@ Rectangle {
     Component.onCompleted: {
         if(typeof daemonManager != "undefined")
             daemonManager.daemonConsoleUpdated.connect(onDaemonConsoleUpdated)
+
+        if(typeof priceManager != "undefined") {
+            //priceSourceDropDown.update();
+            // currencyDropDown.update();
+        }
 
     }
 
