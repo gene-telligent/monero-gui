@@ -28,7 +28,7 @@ signals:
     // Emitted when update is called
     void updated();
 
-private:
+public:
     explicit Price(QObject *parent = nullptr);
     void update(qreal price, Currency *currency);
 

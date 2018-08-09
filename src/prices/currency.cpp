@@ -13,7 +13,8 @@ namespace Currencies {
                 2);
     Currency * const BTC = new Currency(
                 QString("BTC"),
-                QChar(0x20BF),
+                // Using a Thai Bhat symbol right now since most OS fonts still don't support Unicode 10
+                QChar(0x0E3F),
                 9);
 }
 

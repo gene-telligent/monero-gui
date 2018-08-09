@@ -9,68 +9,27 @@
 #include <QMetaType>
 #include <QUrl>
 #include <QUrlQuery>
-#include <QStringListModel>
 
 namespace PriceSources {
-    PriceSource * const DEFAULT = new PriceSource(
-                QString(""),
-                QString(),
-                {},
-                QString()
-                );
-    PriceSource * const CoinMarketCap = new PriceSource(
-                QString("CoinMarketCap"),
-                QString("https://api.coinmarketcap.com/v2/ticker/328/"),
-                {Currencies::USD, Currencies::GBP, Currencies::BTC},
-                QString("data/quotes/{CURRENCY}/price"));
-    PriceSource * const Binance = new PriceSource(
-                QString("Binance"),
-                QString("https://api.binance.com/api/v1/ticker/24hr?symbol=XMR{CURRENCY}"),
-                {Currencies::USD, Currencies::GBP, Currencies::BTC},
-                QString("lastPrice"));
+    PriceSource * const CoinMarketCap = new CoinMarketCapSource();
+    PriceSource * const Binance = new BinanceSource();
 }
 
-// TODO: refactor this into virtual functions and inheritance
-PriceSource::PriceSource(QString label, QString baseUrl, QList<Currency*> supportedCurrencies, QString jsonPath, QObject *parent) :
-    m_label(label),
-    m_base_url(baseUrl),
-    m_currencies(supportedCurrencies),
-    m_json_path(jsonPath),
-    QObject(parent)
+QUrl CoinMarketCapSource::renderUrl(Currency * currency)
 {
-
+    QUrl rendered(m_baseUrl);
+    QUrlQuery query = QUrlQuery();
+    query.addQueryItem(QLatin1Literal("convert"), currency->label());
+    rendered.setQuery(query);
+    return rendered;
 }
 
-QString PriceSource::label() const
-{
-    return m_label;
-}
-
-QString PriceSource::baseUrl() const
-{
-    return m_base_url;
-}
-
-QList<Currency*> PriceSource::currenciesAvailable() const
-{
-    qDebug() << "currencies available called from pricesource";
-    qDebug() << "currencies are: " << m_currencies;
-    return m_currencies;
-}
-
-QUrl PriceSource::renderUrl(Currency * currency)
-{
-    QString renderedBaseUrl(m_base_url);
-    renderedBaseUrl.replace(QLatin1Literal("{CURRENCY}"), currency->label());
-    QUrl renderedUrl(renderedBaseUrl);
-    return renderedUrl;
-}
-
-bool PriceSource::updatePriceFromReply(Price *price, Currency * currency, QJsonDocument &reply)
+bool CoinMarketCapSource::updatePriceFromReply(Price *price, Currency * currency, QJsonDocument &reply)
 {
     QtJsonPath walker(reply);
-    QString modpath(m_json_path);
-    modpath.replace(QLatin1Literal("{CURRENCY}"), currency->label());
+    QString modpath = QString(QLatin1Literal("data/quotes/"))
+            .append(currency->label())
+            .append(QLatin1Literal("/price"));
     qDebug() << "Using path of " << modpath;
     QVariant res = walker.getValue(modpath);
     qDebug() << "Got walked value " << res << " with metatype " << res.userType();
@@ -87,4 +46,45 @@ bool PriceSource::updatePriceFromReply(Price *price, Currency * currency, QJsonD
     price->update(val.toDouble(), currency);
     return true;
 }
+
+QUrl BinanceSource::renderUrl(Currency * currency)
+{
+    QUrl rendered(m_baseUrl);
+    QUrlQuery query = QUrlQuery();
+    QString pair(QLatin1Literal("XMR"));
+    pair.append(currency->label());
+    query.addQueryItem(QLatin1Literal("symbol"), pair);
+    rendered.setQuery(query);
+    return rendered;
+}
+
+bool BinanceSource::updatePriceFromReply(Price *price, Currency * currency, QJsonDocument &reply)
+{
+    qDebug() << "got reply" << reply.toJson();
+
+    if (!reply.isObject() || reply.isEmpty()) {
+        qDebug() << "Invalid JSON response [reply is not object or empty]; ignoring price update";
+        return false;
+    }
+
+    QString priceRaw = reply
+            .object()
+            .value(QLatin1Literal("lastPrice"))
+            .toString();
+    if (priceRaw.isNull()) {
+        qDebug() << "Invalid JSON response [does not contain valid key 'lastPrice']; ignoring price update";
+        return false;
+    }
+
+    bool * success = nullptr;
+    qreal priceDouble = priceRaw.toDouble(success);
+    if (!success) {
+        qDebug() << "Invalid JSON response [value " << priceRaw << " at key 'lastPrice' cannot be converted to double]; ignoring price update";
+        return false;
+    }
+
+    price->update(priceDouble, currency);
+    return true;
+}
+
 

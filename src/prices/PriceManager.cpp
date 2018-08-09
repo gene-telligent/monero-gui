@@ -36,10 +36,12 @@ PriceManager *PriceManager::instance(QNetworkAccessManager *networkAccessManager
 PriceManager::PriceManager(QNetworkAccessManager *manager, QObject *parent) :
     QObject(parent),
     m_manager(manager),
+    m_reply(nullptr),
     m_currentPrice(nullptr),
     m_currentPriceSource(nullptr),
     m_currentCurrency(nullptr),
     m_priceSourcesAvailableModel(nullptr),
+    m_currenciesAvailableModel(nullptr),
     m_timer(nullptr)
 {
     qDebug() << "instantiating pricemanager debug";
@@ -48,6 +50,10 @@ PriceManager::PriceManager(QNetworkAccessManager *manager, QObject *parent) :
     m_refreshing = false;
     m_currentPrice = new Price(this);
     m_timer = new QTimer(this);
+
+    PriceManager * pm = const_cast<PriceManager*>(this);
+    m_priceSourcesAvailableModel = new PriceSourceSelectorModel(pm, m_priceSourcesAvailable);
+    m_currenciesAvailableModel = new CurrencySelectorModel(pm);
 
     connect(m_timer, SIGNAL(timeout()), this, SLOT(runPriceRefresh()));
     connect(this, SIGNAL(priceSourceChanged()), this, SLOT(updateCurrenciesAvailable()));
@@ -105,30 +111,25 @@ void PriceManager::runPriceRefresh() const
     emit priceRefreshStarted();
     m_refreshing = true;
 
-    qCDebug(logPriceManager) << "Constructing request";
     QUrl reqUrl = m_currentPriceSource->renderUrl(m_currentCurrency);
-    qDebug() << "Constructed URL " << reqUrl.toDisplayString();
 
     QNetworkRequest request;
     request.setUrl(reqUrl);
     request.setRawHeader("User-Agent", "monero-gui/0.12.0 (Qt)");
 
-    qDebug() << "Request constructed";
-
     // TODO: maybe store this locally
-    QNetworkReply *reply = m_manager->get(request);
+    m_reply = m_manager->get(request);
 
     qDebug() << "Request sent to manager, reply pointer responded";
 
-    connect(reply, SIGNAL(finished()), this, SLOT(handleHTTPFinished()));
-    connect(this, SIGNAL(stopping()), reply, SLOT(abort()));
+    connect(m_reply, SIGNAL(finished()), this, SLOT(handleHTTPFinished()));
+    connect(this, SIGNAL(stopping()), m_reply, SLOT(abort()));
 
     qDebug() << "Signals connected";
 }
 
 void PriceManager::handleHTTPFinished() const
 {
-    qDebug() << "Network reply has finished";
     m_refreshing = false;
     QNetworkReply *reply = dynamic_cast<QNetworkReply*>(QObject::sender());
 
@@ -145,13 +146,8 @@ void PriceManager::updatePrice(QNetworkReply* reply) const
     qDebug() << "Updating price";
 
     QByteArray data = reply->readAll();
-
-    qDebug() << "Got response data " << QString::fromUtf8(data.data());
-
     QJsonParseError *error = nullptr;
     QJsonDocument doc = QJsonDocument::fromJson(data, error);
-
-    qDebug() << "Parse QJsonDocument";
 
     if (doc.isNull()) {
         handleError(error->errorString());
@@ -198,11 +194,6 @@ QList<PriceSource*> PriceManager::priceSourcesAvailable() const
 
 PriceSourceSelectorModel *PriceManager::priceSourcesAvailableModel() const
 {
-    if (!m_priceSourcesAvailableModel) {
-        PriceManager * pm = const_cast<PriceManager*>(this);
-        m_priceSourcesAvailableModel = new PriceSourceSelectorModel(pm, m_priceSourcesAvailable);
-    }
-
     return m_priceSourcesAvailableModel;
 }
 
@@ -211,15 +202,12 @@ QList<Currency*> PriceManager::currenciesAvailable() const
 {
     if (!m_currentPriceSource)
         return QList<Currency*>();
-    qDebug() << "currenciesAvailable call made!";
-    qDebug() << "current price source is " << m_currentPriceSource;
-    qDebug() << "currencies available are " << m_currentPriceSource->currenciesAvailable();
     return m_currentPriceSource->currenciesAvailable();
 }
 
 void PriceManager::setPriceSource(int index)
 {
-    if (index < 0 || (unsigned)index >= m_priceSourcesAvailable.count()) {
+    if (index < 0 || index >= m_priceSourcesAvailable.count()) {
         qDebug() << "Bad index passed to setPriceSource; NOOP";
         return;
     }
@@ -230,7 +218,7 @@ void PriceManager::setPriceSource(int index)
 
 void PriceManager::setCurrency(int index)
 {
-    if (index < 0 || (unsigned)index >= currenciesAvailable().count()) {
+    if (index < 0 || index >= currenciesAvailable().count()) {
         qDebug() << "Bad index passed to setCurrency; NOOP";
         return;
     }
@@ -242,19 +230,12 @@ void PriceManager::setCurrency(int index)
 
 void PriceManager::updateCurrenciesAvailable()
 {
-    qDebug() << "POricesources available currently are: " << m_priceSourcesAvailable;
-    qDebug() << "Setting available currencies within the currenciesAvailableModel";
-    m_currenciesAvailableModel->setAvailableCurrencies(this->currenciesAvailable());
-    qDebug() << "CurrenciesAvailable have been set!";
+    this->currenciesAvailableModel()->setAvailableCurrencies(this->currenciesAvailable());
 }
 
 
 CurrencySelectorModel *PriceManager::currenciesAvailableModel() const
 {
-    if (!m_currenciesAvailableModel) {
-        PriceManager * pm = const_cast<PriceManager*>(this);
-        m_currenciesAvailableModel = new CurrencySelectorModel(pm);
-    }
     return m_currenciesAvailableModel;
 }
 
@@ -262,7 +243,6 @@ CurrencySelectorModel *PriceManager::currenciesAvailableModel() const
 
 void PriceManager::setPriceSource(QModelIndex index)
 {
-    qDebug() << "Setting price source using model index " << index;
     QVariant p = m_priceSourcesAvailableModel->data(index, PriceSourceSelectorModel::PriceSourceRole);
     if (!p.isValid() || p.isNull()) {
         qDebug() << "Invalid price source index passed, NOOP";
@@ -309,7 +289,7 @@ Currency * PriceManager::currentCurrency() const
     return m_currentCurrency;
 }
 
-bool PriceManager::priceAvailable() const
+bool PriceManager::priceReady() const
 {
     return m_currentPrice->price() != 0;
 }

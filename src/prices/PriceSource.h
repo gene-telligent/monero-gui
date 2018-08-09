@@ -10,7 +10,6 @@
 
 class Price;
 
-/* right now going to start with just coinmarketcap */
 class PriceSource : public QObject
 {
     Q_OBJECT
@@ -19,30 +18,59 @@ class PriceSource : public QObject
     Q_PROPERTY(QString label READ label)
     // URL used to contact the API for prices
     Q_PROPERTY(QUrl baseUrl READ baseUrl)
+
 public:
-    explicit PriceSource(QString label = QString(), QString baseUrl = QString(), QList<Currency*> supportedCurrencies = {}, QString jsonPath = QString(), QObject *parent = nullptr);
-    QString label() const;
-    QString baseUrl() const;
+    explicit PriceSource(QObject *parent = nullptr) : QObject(parent) {}
+    virtual QString label() const = 0;
+    virtual QUrl baseUrl() const = 0;
     // Get list of available currencies
-    Q_INVOKABLE QList<Currency*> currenciesAvailable() const;
-private:
-    bool updatePriceFromReply(Price * price, Currency * currency, QJsonDocument & reply);
-    QUrl renderUrl(Currency * currency);
+    // TODO: change this to a QVariantList for better compatibility with Javascript Data Binding
+    Q_INVOKABLE virtual QList<Currency*> currenciesAvailable() const = 0;
+    virtual bool updatePriceFromReply(Price * price, Currency * currency, QJsonDocument & reply) = 0;
+    virtual QUrl renderUrl(Currency * currency) = 0;
 
 private:
     friend class PriceManager;
-    const QString m_label;
-    const QString m_base_url;
-    const QList<Currency*> m_currencies;
-    const QString m_json_path;
+};
+
+class CoinMarketCapSource : public PriceSource
+{
+    Q_OBJECT
+
+public:
+    using PriceSource::PriceSource;
+    QString label() const {return QLatin1Literal("CoinMarketCap"); }
+    QUrl baseUrl() const {return m_baseUrl; }
+    QList<Currency*> currenciesAvailable() const { return m_currenciesAvailable; }
+    bool updatePriceFromReply(Price *price, Currency *currency, QJsonDocument &reply);
+    QUrl renderUrl(Currency *currency);
+
+private:
+    const QList<Currency*> m_currenciesAvailable = {Currencies::USD, Currencies::BTC, Currencies::GBP};
+    const QUrl m_baseUrl = QUrl(QLatin1Literal("https://api.coinmarketcap.com/v2/ticker/328/"));
+    const QString m_jsonPath = QLatin1Literal("data/quotes/{CURRENCY}/price");
+};
+
+class BinanceSource : public PriceSource
+{
+    Q_OBJECT
+
+public:
+    using PriceSource::PriceSource;
+    QString label() const {return QLatin1Literal("Binance"); }
+    QUrl baseUrl() const {return m_baseUrl; }
+    QList<Currency*> currenciesAvailable() const { return m_currenciesAvailable; }
+    bool updatePriceFromReply(Price *price, Currency *currency, QJsonDocument &reply);
+    QUrl renderUrl(Currency *currency);
+
+private:
+    const QList<Currency*> m_currenciesAvailable = {Currencies::BTC};
+    const QUrl m_baseUrl = QUrl(QLatin1Literal("https://api.binance.com/api/v1/ticker/24hr"));
 };
 
 namespace PriceSources {
-    extern PriceSource * const DEFAULT;
     extern PriceSource * const CoinMarketCap;
     extern PriceSource * const Binance;
 }
-
-//typedef QList<PriceSource *> PriceSourceSet;
 
 #endif // PRICESOURCE_H

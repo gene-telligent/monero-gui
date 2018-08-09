@@ -21,7 +21,7 @@ class PriceManager : public QObject
     Q_OBJECT
     Q_PROPERTY(bool running READ running)
     Q_PROPERTY(bool refreshing READ refreshing)
-    Q_PROPERTY(bool priceAvailable READ priceAvailable NOTIFY priceRefreshed)
+    Q_PROPERTY(bool priceReady READ priceReady NOTIFY priceRefreshed)
     Q_PROPERTY(Currency * currentCurrency READ currentCurrency NOTIFY currencyChanged)
     Q_PROPERTY(QList<Currency*> currenciesAvailable READ currenciesAvailable NOTIFY priceSourceChanged)
     Q_PROPERTY(CurrencySelectorModel * currenciesAvailableModel READ currenciesAvailableModel NOTIFY priceSourceChanged)
@@ -38,9 +38,9 @@ public:
     // Stop the price polling thread
     Q_INVOKABLE void stop();
     // Restart the price polling thread
-    Q_INVOKABLE void restart();
+    //Q_INVOKABLE void restart();
     // Is there a price available yet?
-    Q_INVOKABLE bool priceAvailable() const;
+    Q_INVOKABLE bool priceReady() const;
     // Are we running?
     Q_INVOKABLE bool running() const;
     // Are we refreshing the price?
@@ -85,6 +85,7 @@ signals:
     void stopped() const;
 
 public slots:
+    Q_INVOKABLE void restart();
     // Called when the timer hits (perform HTTP request)
     void runPriceRefresh() const;
     // Called when the HTTP request completes
@@ -95,19 +96,20 @@ public slots:
     void updateCurrenciesAvailable();
 
 private:
-    explicit PriceManager(QNetworkAccessManager *manager, QObject *parent = 0);
-    explicit PriceManager(QObject *parent = 0);
+    explicit PriceManager(QNetworkAccessManager *manager, QObject *parent = nullptr);
+    explicit PriceManager(QObject *parent = nullptr);
     static PriceManager * m_instance;
     mutable bool m_running;
     mutable bool m_refreshing;
     QNetworkAccessManager * m_manager;
+    mutable QNetworkReply * m_reply;
     QTimer * m_timer;
     Price * m_currentPrice;
     Currency * m_currentCurrency;
     PriceSource * m_currentPriceSource;
-    const QList<PriceSource*> m_priceSourcesAvailable = {PriceSources::DEFAULT, PriceSources::CoinMarketCap, PriceSources::Binance};
-    mutable PriceSourceSelectorModel * m_priceSourcesAvailableModel;
-    mutable CurrencySelectorModel * m_currenciesAvailableModel;
+    const QList<PriceSource*> m_priceSourcesAvailable = {PriceSources::CoinMarketCap, PriceSources::Binance};
+    PriceSourceSelectorModel * m_priceSourcesAvailableModel;
+    CurrencySelectorModel * m_currenciesAvailableModel;
 
 };
 

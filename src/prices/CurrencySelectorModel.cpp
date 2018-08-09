@@ -16,7 +16,7 @@ QVariant CurrencySelectorModel::data(const QModelIndex &index, int role) const
 {
     if (m_availableCurrencies.empty())
         return QVariant();
-    if (index.row() < 0 || (unsigned)index.row() >= m_availableCurrencies.count())
+    if (index.row() < 0 || index.row() >= m_availableCurrencies.count())
         return QVariant();
 
     Currency * currency = m_availableCurrencies.at(index.row());
@@ -45,6 +45,7 @@ QVariant CurrencySelectorModel::data(const QModelIndex &index, int role) const
 
 int CurrencySelectorModel::rowCount(const QModelIndex &parent) const
 {
+    Q_UNUSED(parent);
     return m_availableCurrencies.count();
 }
 
@@ -56,20 +57,15 @@ QHash<int, QByteArray> CurrencySelectorModel::roleNames() const
         roleNames.insert(CurrencyRole, "currency");
         roleNames.insert(CurrencyLabelRole, "label");
         roleNames.insert(CurrencySymbolRole, "symbol");
+        roleNames.insert(CurrencySimpleDropdownRole, "column1");
     }
     return roleNames;
 }
 
 void CurrencySelectorModel::setAvailableCurrencies(QList<Currency*> currencies)
 {
-    qDebug() << "beginning to reset model";
-    qDebug() << "Got currency list " << currencies;
     beginResetModel();
-    qDebug() << "assigning available currencies";
     m_availableCurrencies = QList<Currency*>(currencies);
-    qDebug() << "available currencies assigned";
     endResetModel();
-    qDebug() << "Reset model emitted, emitting availablecurrencieschanged";
     emit availableCurrenciesChanged();
-    qDebug() << "available currencies changed emitted";
 }

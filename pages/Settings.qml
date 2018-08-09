@@ -508,7 +508,10 @@ Rectangle {
                 id: enableConvertCurrency
                 text: qsTr("Enable displaying balance in other currencies") + translationManager.emptyString
                 checked: persistentSettings.enableCurrencyConversion
-                onCheckedChanged: persistentSettings.enableCurrencyConversion = checked
+                onCheckedChanged: {
+                    persistentSettings.enableCurrencyConversion = checked;
+                    appWindow.setPriceManager(checked);
+                }
             }
         }
 
@@ -529,10 +532,8 @@ Rectangle {
                     onChanged: {
                         var idx = dataModel.index(currentIndex, 0);
                         priceManager.setPriceSource(idx);
-                        console.log("Price source set");
-                        //console.log("Now available currencies are : " + priceManager.currenciesAvailable + " and model size " + priceManager.currenciesAvailableModel.rowCount());
                         appWindow.persistentSettings.currencyConversionSourceIndex = currentIndex;
-                        //appWindow.persistentSettings.currencyConversionCurrencyIndex = 0;
+                        console.log(currentIndex);
                     }
                     Layout.fillWidth: true
                     shadowReleasedColor: "#FF4304"
@@ -543,9 +544,7 @@ Rectangle {
                     // Override the update function as it refers to the "get" method which doesn't exist for c++ models
                     function update() {
                         var idx = dataModel.index(currentIndex, 0);
-                        var label = dataModel.data(idx, PriceSourceSelectorModel.PriceSourceLabelRole);
-                        colText = label;
-                        //colText = currentIndex < dataModel.rowCount() ? qsTr(dataModel.data(dataModel.index(currentIndex,0)).column1) + translationManager.emptyString : ""
+                        colText = dataModel.data(idx, PriceSourceSelectorModel.PriceSourceLabelRole);
                     }
                 }
                 // Make sure dropdown is on top
@@ -555,11 +554,10 @@ Rectangle {
                 spacing: 0
                 Layout.fillWidth: true
 
-                /*
                 StandardDropdown {
                     id: currencyDropDown
                     dataModel: priceManager.currenciesAvailableModel
-                    visible: dataModel.rowCount() > 0
+                    //visible: dataModel.rowCount() > 0
                     currentIndex: appWindow.persistentSettings.currencyConversionCurrencyIndex
                     onChanged: {
                         var idx = dataModel.index(currentIndex, 0);
@@ -576,12 +574,10 @@ Rectangle {
                     // Override the update function as it refers to the "get" method which doesn't exist for c++ models
                     function update() {
                         var idx = dataModel.index(currentIndex, 0);
-                        var label = dataModel.data(idx, CurrencySelectorModel.CurrencyLabelRole);
-                        colText = label;
-                        //colText = currentIndex < dataModel.rowCount() ? qsTr(dataModel.data(dataModel.index(currentIndex,0)).column1) + translationManager.emptyString : ""
+                        colText = dataModel.data(idx, CurrencySelectorModel.CurrencyLabelRole);
                     }
                 }
-                */
+
                 // Make sure dropdown is on top
             }
 
@@ -919,8 +915,8 @@ Rectangle {
             daemonManager.daemonConsoleUpdated.connect(onDaemonConsoleUpdated)
 
         if(typeof priceManager != "undefined") {
-            //priceSourceDropDown.update();
-            // currencyDropDown.update();
+            priceSourceDropDown.update();
+            currencyDropDown.update();
         }
 
     }

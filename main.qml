@@ -219,10 +219,12 @@ ApplicationWindow {
 
         console.log("Checking if we should update monero price");
         // Are we updating the price already?
-        //if (persistentSettings.updateMoneroPrice) {
-        if (true) {
+        if (persistentSettings.enableCurrencyConversion) {
             console.log("Starting price manager");
+            console.log(persistentSettings.currencyConversionCurrencyIndex);
+            console.log(persistentSettings.currencyConversionSourceIndex);
             // TODO: start with default values
+
             startPriceManager();
         }
 
@@ -358,11 +360,12 @@ ApplicationWindow {
         if (!currentWallet)
             return;
         middlePanel.unlockedBalanceText = leftPanel.unlockedBalanceText =  middlePanel.state === "Receive" ? qsTr("HIDDEN") : walletManager.displayAmount(currentWallet.unlockedBalance(currentWallet.currentSubaddressAccount));
-        leftPanel.unlockedBalanceTextFiat = middlePanel.state === "Receive" ? qsTr("HIDDEN") : priceManager.convert(currentWallet.unlockedBalance(currentWallet.currentSubaddressAccount));
-        console.log("Unlocked balance text fiat is " + leftPanel.unlockedBalanceTextFiat);
         middlePanel.balanceText = leftPanel.balanceText = middlePanel.state === "Receive" ? qsTr("HIDDEN") : walletManager.displayAmount(currentWallet.balance(currentWallet.currentSubaddressAccount));
-        leftPanel.balanceTextFiat = middlePanel.state === "Receive" ? qsTr("HIDDEN") : priceManager.convert(currentWallet.balance(currentWallet.currentSubaddressAccount));
-        console.log("Balance text fiat is " + leftPanel.balanceTextFiat);
+
+        if (typeof priceManager !== 'undefined' && persistentSettings.enableCurrencyConversion) {
+            leftPanel.unlockedBalanceTextFiat = middlePanel.state === "Receive" ? qsTr("HIDDEN") : priceManager.convert(currentWallet.unlockedBalance(currentWallet.currentSubaddressAccount));
+            leftPanel.balanceTextFiat = middlePanel.state === "Receive" ? qsTr("HIDDEN") : priceManager.convert(currentWallet.balance(currentWallet.currentSubaddressAccount));
+        }
     }
 
     function onWalletConnectionStatusChanged(status){
@@ -945,14 +948,25 @@ ApplicationWindow {
 
     function startPriceManager() {
         console.log("Starting PriceManager");
+        var sourceIdx = priceManager.priceSourcesAvailableModel.index(persistentSettings.currencyConversionSourceIndex, 0);
+        priceManager.setPriceSource(sourceIdx);
+        var currencyIdx = priceManager.currenciesAvailableModel.index(persistentSettings.currencyConversionCurrencyIndex, 0);
+        priceManager.setCurrency(currencyIdx);
+        priceManager.priceRefreshed.connect(updateBalance);
         priceManager.start();
-        console.log("DEBUG!! " + priceManager.priceSourcesAvailable);
-        //currentPrice = priceManager.price;
     }
 
     function stopPriceManager() {
         console.log("Stopping PriceManager");
+        priceManager.priceRefreshed.disconnect(updateBalance);
         priceManager.stop();
+    }
+
+    function setPriceManager(bool) {
+        if (bool && !priceManager.running)
+            startPriceManager();
+        if (!bool && priceManager.running)
+            stopPriceManager();
     }
 
 

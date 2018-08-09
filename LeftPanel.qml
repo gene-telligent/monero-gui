@@ -48,7 +48,6 @@ Rectangle {
     property alias daemonProgressBar : daemonProgressBar
     property alias minutesToUnlockTxt: unlockedBalanceLabel.text
     property int titleBarHeight: 50
-    property bool fiatVisible: false
 
     signal dashboardClicked()
     signal historyClicked()
@@ -164,7 +163,7 @@ Rectangle {
                 width: 50 * scaleRatio
 
                 Text {
-                    visible: !isMobile && !balanceArea.containsMouse
+                    visible: !isMobile && !(balanceArea.containsMouse && priceManager !== 'undefined' && persistentSettings.enableCurrencyConversion && priceManager.priceReady)
                     id: balanceText
                     anchors.left: parent.left
                     anchors.leftMargin: 20
@@ -185,7 +184,7 @@ Rectangle {
                 }
 
                 Text {
-                    visible: !isMobile && balanceArea.containsMouse
+                    visible: !isMobile && !balanceText.visible
                     id: balanceTextFiat
                     anchors.left: parent.left
                     anchors.leftMargin: 20
@@ -194,20 +193,12 @@ Rectangle {
                     font.family: "Arial"
                     color: "#FFFFFF"
                     text: "N/A"
-                    // dynamically adjust text size
-                    font.pixelSize: {
-                        var digits = text.split('.')[0].length
-                        var defaultSize = 22;
-                        if(digits > 2) {
-                            return defaultSize - 1.1*digits
-                        }
-                        return defaultSize;
-                    }
+                    font.pixelSize: balanceText.font.pixelSize
                 }
 
                 Text {
                     id: unlockedBalanceText
-                    visible: !balanceArea.containsMouse
+                    visible: !(balanceArea.containsMouse && priceManager !== 'undefined' && persistentSettings.enableCurrencyConversion && priceManager.priceReady)
                     anchors.left: parent.left
                     anchors.leftMargin: 20
                     anchors.top: parent.top
@@ -238,14 +229,7 @@ Rectangle {
                     color: "#FFFFFF"
                     text: "N/A"
                     // dynamically adjust text size
-                    font.pixelSize: {
-                        var digits = text.split('.')[0].length
-                        var defaultSize = 20;
-                        if(digits > 3) {
-                            return defaultSize - 0.6*digits
-                        }
-                        return defaultSize;
-                    }
+                    font.pixelSize: unlockedBalanceText.font.pixelSize
                 }
 
                 Label {

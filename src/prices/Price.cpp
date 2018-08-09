@@ -49,8 +49,6 @@ bool Price::stale() const
 
 QString Price::convert(quint64 amount) const
 {
-    qDebug() << "Got amount " << amount;
-
     if (stale()) {
         qDebug() << "Stale, returning null string";
         return QString();
@@ -61,9 +59,8 @@ QString Price::convert(quint64 amount) const
         return QString();
     }
 
-    // TODO: this almost certainly is an unsafe cast at high numerics
+    // TODO: this almost certainly is an unsafe cast at high numeric values
     qreal total = amount * m_price / MONERO_STANDARD_UNIT;
-    //return QString::number(total, 'f', 2);
     return m_currency->render(total);
 }
 
