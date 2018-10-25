@@ -191,6 +191,26 @@ CONFIG(WITH_SCANNER) {
     }
 }
 
+CONFIG(WITH_PRICES) {
+    message("building with prices")
+    DEFINES += "WITH_PRICES"
+    HEADERS += \
+        src/prices/Currency.h \
+        src/prices/Price.h \
+        src/prices/PriceSource.h \
+        src/prices/CurrencySelectorModel.h \
+        src/prices/PriceSourceSelectorModel.h \
+        src/prices/PriceManager.h \
+        src/prices/qtjsonpath.h
+    SOURCES += \
+        src/prices/Currency.cpp \
+        src/prices/Price.cpp \
+        src/prices/PriceSource.cpp \
+        src/prices/CurrencySelectorModel.cpp \
+        src/prices/PriceSourceSelectorModel.cpp \
+        src/prices/PriceManager.cpp
+}
+
 
 # currently we only support x86 build as qt.io only provides prebuilt qt for x86 mingw
 
@@ -201,7 +221,7 @@ win32 {
     MSYS_HOST_ARCH = $$system(uname -a | grep -o "x86_64")
 
     # WIN64 Host settings
-    contains(MSYS_HOST_ARCH, x86_64) {
+    contains(QMAKE_HOST.arch, x86_64) {
         message("Host is 64bit")
         MSYS_ROOT_PATH=c:/msys64
 
@@ -260,7 +280,7 @@ win32 {
         -lhidapi \
         -lgdi32
     
-    !contains(QMAKE_TARGET.arch, x86_64) {
+    !contains(MSYS_HOST_ARCH, x86_64) {
         message("Target is 32bit")
         ## Windows x86 (32bit) specific build here
         ## there's 2Mb stack in libwallet allocated internally, so we set stack=4Mb

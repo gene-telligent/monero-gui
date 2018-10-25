@@ -218,6 +218,10 @@ ApplicationWindow {
         // Local daemon settings
         walletManager.setDaemonAddress(localDaemonAddress)
 
+        // Start the price manager if applicable
+        if (builtWithPrices && persistentSettings.enableCurrencyConversion) {
+            startPriceManager();
+        }
 
         // wallet already opened with wizard, we just need to initialize it
         if (typeof wizard.m_wallet !== 'undefined') {
@@ -357,6 +361,11 @@ ApplicationWindow {
             return;
         middlePanel.unlockedBalanceText = leftPanel.unlockedBalanceText =  middlePanel.state === "Receive" ? qsTr("HIDDEN") : walletManager.displayAmount(currentWallet.unlockedBalance(currentWallet.currentSubaddressAccount));
         middlePanel.balanceText = leftPanel.balanceText = middlePanel.state === "Receive" ? qsTr("HIDDEN") : walletManager.displayAmount(currentWallet.balance(currentWallet.currentSubaddressAccount));
+
+        if (builtWithPrices && persistentSettings.enableCurrencyConversion) {
+            leftPanel.unlockedBalanceTextFiat = middlePanel.state === "Receive" ? qsTr("HIDDEN") : priceManager.convert(currentWallet.unlockedBalance(currentWallet.currentSubaddressAccount));
+            leftPanel.balanceTextFiat = middlePanel.state === "Receive" ? qsTr("HIDDEN") : priceManager.convert(currentWallet.balance(currentWallet.currentSubaddressAccount));
+        }
     }
 
     function onWalletConnectionStatusChanged(status){
@@ -938,6 +947,29 @@ ApplicationWindow {
         console.log(appWindow.width)
     }
 
+    function startPriceManager() {
+        console.log("Starting PriceManager");
+        var sourceIdx = priceManager.priceSourcesAvailableModel.index(persistentSettings.currencyConversionSourceIndex, 0);
+        priceManager.setPriceSource(sourceIdx);
+        var currencyIdx = priceManager.currenciesAvailableModel.index(persistentSettings.currencyConversionCurrencyIndex, 0);
+        priceManager.setCurrency(currencyIdx);
+        priceManager.priceRefreshed.connect(updateBalance);
+        priceManager.start();
+    }
+
+    function stopPriceManager() {
+        console.log("Stopping PriceManager");
+        priceManager.priceRefreshed.disconnect(updateBalance);
+        priceManager.stop();
+    }
+
+    function setPriceManager(bool) {
+        if (bool && !priceManager.running)
+            startPriceManager();
+        if (!bool && priceManager.running)
+            stopPriceManager();
+    }
+
 
     objectName: "appWindow"
     visible: true
@@ -1032,6 +1064,9 @@ ApplicationWindow {
         property bool segregatePreForkOutputs: true
         property bool keyReuseMitigation2: true
         property int segregationHeight: 0
+        property bool enableCurrencyConversion: false
+        property int currencyConversionSourceIndex: 0
+        property int currencyConversionCurrencyIndex: 0
     }
 
     // Information dialog

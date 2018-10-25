@@ -66,6 +66,14 @@
 #include "QrCodeScanner.h"
 #endif
 
+#ifdef WITH_PRICES
+#include "prices/Currency.h"
+#include "prices/PriceManager.h"
+#include "prices/PriceSource.h"
+#include "prices/PriceSourceSelectorModel.h"
+#include "prices/CurrencySelectorModel.h"
+#endif
+
 bool isIOS = false;
 bool isAndroid = false;
 bool isWindows = false;
@@ -191,7 +199,22 @@ int main(int argc, char *argv[])
 
     qmlRegisterUncreatableType<Subaddress>("moneroComponents.Subaddress", 1, 0, "Subaddress",
                                                         "Subaddress can't be instantiated directly");
+#ifdef WITH_PRICES
+    qmlRegisterUncreatableType<PriceManager>("moneroComponents.PriceManager", 1, 0, "PriceManager",
+                                                        "PriceManager can't be instantiated directly");
 
+    qmlRegisterUncreatableType<PriceSource>("moneroComponents.PriceSource", 1, 0, "PriceSource",
+                                                        "PriceSource can't be instantiated directly");
+
+    qmlRegisterUncreatableType<PriceSourceSelectorModel>("moneroComponents.PriceSourceSelectorModel", 1, 0, "PriceSourceSelectorModel",
+                                                        "PriceSourceSelectorModel can't be instantiated directly");
+
+    qmlRegisterUncreatableType<Currency>("moneroComponents.Currency", 1, 0, "Currency",
+                                                        "Currency can't be instantiated directly");
+
+    qmlRegisterUncreatableType<CurrencySelectorModel>("moneroComponents.CurrencySelectorModel", 1, 0, "CurrencySelectorModel",
+                                                        "CurrencySelectorModel can't be instantiated directly");
+#endif
     qRegisterMetaType<PendingTransaction::Priority>();
     qRegisterMetaType<TransactionInfo::Direction>();
     qRegisterMetaType<TransactionHistoryModel::TransactionInfoRole>();
@@ -222,6 +245,9 @@ int main(int argc, char *argv[])
 
     engine.rootContext()->setContextProperty("walletLogPath", logPath);
 
+#ifdef WITH_PRICES
+    engine.rootContext()->setContextProperty("priceManager", PriceManager::instance(engine.networkAccessManager()));
+#endif
 // Exclude daemon manager from IOS
 #ifndef Q_OS_IOS
     const QStringList arguments = (QStringList) QCoreApplication::arguments().at(0);
@@ -275,6 +301,12 @@ int main(int argc, char *argv[])
     builtWithScanner = true;
 #endif
     engine.rootContext()->setContextProperty("builtWithScanner", builtWithScanner);
+
+    bool builtWithPrices = false;
+#ifdef WITH_PRICES
+    builtWithPrices = true;
+#endif
+    engine.rootContext()->setContextProperty("builtWithPrices", builtWithPrices);
 
     // Load main window (context properties needs to be defined obove this line)
     engine.load(QUrl(QStringLiteral("qrc:///main.qml")));
