@@ -57,13 +57,7 @@ PriceManager::PriceManager(QNetworkAccessManager *manager, QObject *parent) :
 
     connect(m_timer, SIGNAL(timeout()), this, SLOT(runPriceRefresh()));
     connect(this, SIGNAL(priceSourceChanged()), this, SLOT(updateCurrenciesAvailable()));
-    connect(this, SIGNAL(currencyChanged()), this, SLOT(runPriceRefresh()));
-
-    // DEBUGGING TIME
-    //m_currentPriceSource = PriceSources::CoinMarketCap;
-    //m_currentCurrency = Currencies::USD;
-
-    //start();
+    connect(this, SIGNAL(currencyChanged()), this, SLOT(restart()));
 }
 
 PriceManager::PriceManager(QObject *parent) :
