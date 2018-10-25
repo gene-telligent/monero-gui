@@ -37,12 +37,12 @@ PriceManager::PriceManager(QNetworkAccessManager *manager, QObject *parent) :
     QObject(parent),
     m_manager(manager),
     m_reply(nullptr),
+    m_timer(nullptr),
     m_currentPrice(nullptr),
-    m_currentPriceSource(nullptr),
     m_currentCurrency(nullptr),
+    m_currentPriceSource(nullptr),
     m_priceSourcesAvailableModel(nullptr),
-    m_currenciesAvailableModel(nullptr),
-    m_timer(nullptr)
+    m_currenciesAvailableModel(nullptr)
 {
     qDebug() << "instantiating pricemanager debug";
     qCDebug(logPriceManager) << "Instantiating PriceManager";
@@ -85,6 +85,10 @@ void PriceManager::stop()
     qCDebug(logPriceManager) << "Stopping PriceManager";
     emit stopping();
     m_timer->stop();
+    if (m_reply && m_reply->isRunning()) {
+        m_reply->abort();
+        m_reply->deleteLater();
+    }
     m_running = false;
     emit stopped();
 }
@@ -95,7 +99,7 @@ void PriceManager::restart()
     start();
 }
 
-void PriceManager::runPriceRefresh() const
+void PriceManager::runPriceRefresh()
 {
     qCDebug(logPriceManager) << "Running PriceRefresh";
     if (refreshing()) {
@@ -117,7 +121,6 @@ void PriceManager::runPriceRefresh() const
     request.setUrl(reqUrl);
     request.setRawHeader("User-Agent", "monero-gui/0.12.0 (Qt)");
 
-    // TODO: maybe store this locally
     m_reply = m_manager->get(request);
 
     qDebug() << "Request sent to manager, reply pointer responded";
@@ -128,24 +131,29 @@ void PriceManager::runPriceRefresh() const
     qDebug() << "Signals connected";
 }
 
-void PriceManager::handleHTTPFinished() const
+void PriceManager::handleHTTPFinished()
 {
     m_refreshing = false;
-    QNetworkReply *reply = dynamic_cast<QNetworkReply*>(QObject::sender());
 
-    if (reply->error() == QNetworkReply::NoError)
-        updatePrice(reply);
+    Q_ASSERT(m_reply);
+    if (!m_reply) {
+        qDebug() << "HTTP Finish called but no m_reply stored.";
+        return;
+    }
+
+    if (m_reply->error() == QNetworkReply::NoError)
+        updatePrice();
     else
-        handleNetworkError(reply);
+        handleNetworkError();
 
-    reply->deleteLater();
+    m_reply->deleteLater();
 }
 
-void PriceManager::updatePrice(QNetworkReply* reply) const
+void PriceManager::updatePrice()
 {
     qDebug() << "Updating price";
 
-    QByteArray data = reply->readAll();
+    QByteArray data = m_reply->readAll();
     QJsonParseError *error = nullptr;
     QJsonDocument doc = QJsonDocument::fromJson(data, error);
 
@@ -170,10 +178,10 @@ void PriceManager::handleError(const QString &msg) const
     qDebug() << "Error: " << msg;
 }
 
-void PriceManager::handleNetworkError(const QNetworkReply* reply) const
+void PriceManager::handleNetworkError()
 {
     emit networkError();
-    handleError("Network error: " + reply->errorString());
+    handleError("Network error: " + m_reply->errorString());
 }
 
 Price * PriceManager::price() const
@@ -291,7 +299,9 @@ Currency * PriceManager::currentCurrency() const
 
 bool PriceManager::priceReady() const
 {
-    return m_currentPrice->price() != 0;
+    if (m_currentPrice->currency() && !m_currentPrice->stale())
+        return true;
+    return false;
 }
 
 

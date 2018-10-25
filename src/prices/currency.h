@@ -16,7 +16,7 @@ public:
     QString label() const;
     QChar symbol() const;
     int precision() const;
-    Q_INVOKABLE QString render(qreal amount) const;
+    Q_INVOKABLE QString format(qreal amount) const;
 
 private:
     const QString m_label;

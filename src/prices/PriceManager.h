@@ -5,6 +5,7 @@
 #include <QObject>
 #include <QNetworkAccessManager>
 #include <QNetworkReply>
+#include <QPointer>
 #include <QString>
 #include <QSet>
 #include <QModelIndex>
@@ -37,22 +38,20 @@ public:
     Q_INVOKABLE void start();
     // Stop the price polling thread
     Q_INVOKABLE void stop();
-    // Restart the price polling thread
-    //Q_INVOKABLE void restart();
     // Is there a price available yet?
-    Q_INVOKABLE bool priceReady() const;
+    bool priceReady() const;
     // Are we running?
-    Q_INVOKABLE bool running() const;
+    bool running() const;
     // Are we refreshing the price?
-    Q_INVOKABLE bool refreshing() const;
+    bool refreshing() const;
     // Get the current currency
-    Q_INVOKABLE Currency * currentCurrency() const;
+    Currency * currentCurrency() const;
     // Get the current price
-    Q_INVOKABLE Price *price() const;
+    Price *price() const;
     // Convert the amount given at the current price and currency
     Q_INVOKABLE QString convert(quint64 amount) const;
     // Get current price source
-    Q_INVOKABLE PriceSource * currentPriceSource() const;
+    PriceSource * currentPriceSource() const;
     // Set price source
     void setPriceSource(int index);
     Q_INVOKABLE void setPriceSource(QModelIndex index);
@@ -71,7 +70,7 @@ public:
     Q_INVOKABLE void handleError(const QString &msg) const;
 
 private:
-    void updatePrice(QNetworkReply *reply) const;
+    void updatePrice();
 
 signals:
     void starting() const;
@@ -87,11 +86,11 @@ signals:
 public slots:
     Q_INVOKABLE void restart();
     // Called when the timer hits (perform HTTP request)
-    void runPriceRefresh() const;
+    void runPriceRefresh();
     // Called when the HTTP request completes
-    void handleHTTPFinished() const;
+    void handleHTTPFinished();
     // Called when the HTTP request fails
-    void handleNetworkError(const QNetworkReply *reply) const;
+    void handleNetworkError();
     // Called when the PriceSource is changed
     void updateCurrenciesAvailable();
 
@@ -102,7 +101,7 @@ private:
     mutable bool m_running;
     mutable bool m_refreshing;
     QNetworkAccessManager * m_manager;
-    mutable QNetworkReply * m_reply;
+    mutable QPointer<QNetworkReply> m_reply;
     QTimer * m_timer;
     Price * m_currentPrice;
     Currency * m_currentCurrency;

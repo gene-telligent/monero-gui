@@ -25,7 +25,7 @@ public:
     virtual QUrl baseUrl() const = 0;
     // Get list of available currencies
     // TODO: change this to a QVariantList for better compatibility with Javascript Data Binding
-    Q_INVOKABLE virtual QList<Currency*> currenciesAvailable() const = 0;
+    virtual QList<Currency*> currenciesAvailable() const = 0;
     virtual bool updatePriceFromReply(Price * price, Currency * currency, QJsonDocument & reply) = 0;
     virtual QUrl renderUrl(Currency * currency) = 0;
 

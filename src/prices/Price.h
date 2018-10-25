@@ -17,11 +17,11 @@ class Price : public QObject
     Q_PROPERTY(Currency * currency READ currency NOTIFY updated)
     Q_PROPERTY(bool stale READ stale NOTIFY updated)
 public:
-    Q_INVOKABLE qreal price() const;
-    Q_INVOKABLE Currency * currency() const;
-    Q_INVOKABLE QString currencyCode() const;
-    Q_INVOKABLE QDateTime lastUpdated() const;
-    Q_INVOKABLE bool stale() const;
+    qreal price() const;
+    Currency * currency() const;
+    QString currencyCode() const;
+    QDateTime lastUpdated() const;
+    bool stale() const;
     Q_INVOKABLE QString convert(quint64 amount) const;
 
 signals:

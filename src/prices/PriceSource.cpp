@@ -76,8 +76,8 @@ bool BinanceSource::updatePriceFromReply(Price *price, Currency * currency, QJso
         return false;
     }
 
-    bool * success = nullptr;
-    qreal priceDouble = priceRaw.toDouble(success);
+    bool success;
+    qreal priceDouble = priceRaw.toDouble(&success);
     if (!success) {
         qDebug() << "Invalid JSON response [value " << priceRaw << " at key 'lastPrice' cannot be converted to double]; ignoring price update";
         return false;

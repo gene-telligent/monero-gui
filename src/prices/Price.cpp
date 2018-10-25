@@ -61,7 +61,7 @@ QString Price::convert(quint64 amount) const
 
     // TODO: this almost certainly is an unsafe cast at high numeric values
     qreal total = amount * m_price / MONERO_STANDARD_UNIT;
-    return m_currency->render(total);
+    return m_currency->format(total);
 }
 
 Currency * Price::currency() const

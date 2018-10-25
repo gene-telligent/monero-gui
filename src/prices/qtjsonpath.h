@@ -12,7 +12,6 @@
 
 /**
  * Taken from lib-qt-qml-tricks (https://github.com/Cavewhere/lib-qt-qml-tricks)
- *
  */
 
 class QtJsonPath {
@@ -59,8 +58,8 @@ public:
         if (!list.empty () && !m_rootNode.isUndefined () && !m_rootNode.isNull ()) {
             QJsonValue currNode = m_rootNode;
             bool error = false;
-            const unsigned int len = list.size ();
-            for (unsigned int depth = 0; (depth < len) && (!error); depth++) {
+            int len = list.size ();
+            for (int depth = 0; (depth < len) && (!error); depth++) {
                 QString part = list.at (depth);
                 bool isNum = false;
                 int index = part.toInt (&isNum, 10);

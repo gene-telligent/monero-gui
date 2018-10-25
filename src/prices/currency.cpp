@@ -42,7 +42,7 @@ int Currency::precision() const
     return m_precision;
 }
 
-QString Currency::render(qreal amount) const
+QString Currency::format(qreal amount) const
 {
     return QLocale().toCurrencyString(amount, m_symbol, m_precision);
 }
